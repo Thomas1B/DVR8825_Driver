@@ -12,8 +12,8 @@ from machine import Pin
 
 
 # Constants
-STEPS_PER_MM = 80
-MM_PER_STEPS = 1 / STEPS_PER_MM
+STEP_PER_MM = 80
+MM_PER_STEP = 1 / STEP_PER_MM
 
 
 class Stepper:
@@ -83,8 +83,6 @@ class Stepper:
         self.state = False  # motor running state
         self.disable()
 
-        self.step = 0  # step position
-
         self.delay = .005/microsteps[step_mode]  # default delay for stepping
         self.step_per_rev = steps_per_rev
         self.adj_steps_per_rev = steps_per_rev * microsteps[step_mode]
@@ -124,19 +122,16 @@ class Stepper:
         if step_count < 0:
             raise ValueError('Parameter "step_count" must be greater than 0.')
 
-        # for _ in range(step_count):
         while step_count > 0:
             step_count -= 1
             if direction == 'forward':
                 self.dir_pin.value(0)
-                self.step += 1
             elif direction == 'backward':
-                self.step -= 1
                 self.dir_pin.value(1)
 
             self.step_pin.value(0)
             self.step_pin.value(1)
-            utime.sleep_us(300 + (delay))
+            utime.sleep_us(400 + (delay))
 
 
 if __name__ == "__main__":
@@ -146,13 +141,15 @@ if __name__ == "__main__":
 
     stepper1.enable()
 
+    print(stepper1.step, stepper1.distance)
     for _ in range(2):
-        print(stepper1.step)
         stepper1.move_steps('forward', 4000, delay=0)
-        print(stepper1.step)
+        print(stepper1.step, stepper1.distance)
+
         utime.sleep(2)
         stepper1.move_steps('backward', 4000, delay=500)
-        print(stepper1.step)
+        print(stepper1.step, stepper1.distance)
         utime.sleep(2)
 
+    print(stepper1.step, stepper1.distance)
     stepper1.disable()

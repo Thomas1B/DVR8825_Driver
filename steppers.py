@@ -42,6 +42,9 @@ class Stepper:
                  steps_per_rev=200,
                  ) -> None:
 
+        self.step_mode = step_mode
+        self.step_per_rev = steps_per_rev
+
         # Objects for direction, step and enable pins
         self.dir_pin = Pin(dir_pin, Pin.OUT)
         self.step_pin = Pin(step_pin, Pin.OUT)
@@ -82,11 +85,6 @@ class Stepper:
 
         self._enable = False  # motor running _enable
         self.disable()
-
-        # self.delay = .005/microsteps[step_mode]  # default delay for stepping
-        self.delay = 20  # default delay for stepping
-        self.step_mode = step_mode
-        self.step_per_rev = steps_per_rev
 
     def enable(self) -> None:
         '''
@@ -175,9 +173,9 @@ if __name__ == "__main__":
         stepper1.enable()
 
         while True:
-            stepper1.move_steps('forward', 200, delay=0)
+            stepper1.move_steps('forward', 2000, delay=0)
             utime.sleep_ms(delay)
-            stepper1.move_steps('backward', 200, delay=0)
+            stepper1.move_steps('backward', 2000, delay=0)
             utime.sleep_ms(delay)
 
     except KeyboardInterrupt:

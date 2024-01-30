@@ -80,7 +80,7 @@ class Stepper:
             self.mode2 = Pin(mode_pins[2], Pin.OUT)
             self.mode2.value(mode_config[2])
 
-        self.state = False  # motor running state
+        self._enable = False  # motor running _enable
         self.disable()
 
         # self.delay = .005/microsteps[step_mode]  # default delay for stepping
@@ -95,7 +95,7 @@ class Stepper:
             motor is ready.
         '''
         self.enable_pin.value(0)
-        self.state = True
+        self._enable = True
         utime.sleep_ms(10)
 
     def disable(self) -> None:
@@ -105,7 +105,7 @@ class Stepper:
             motor is free.
         '''
         self.enable_pin.value(1)
-        self.state = False
+        self._enable = False
 
     def move_steps(self, direction: str, step_count: int, delay=0) -> None:
         '''
@@ -117,7 +117,7 @@ class Stepper:
             delay (default 0): delay time (microseconds) for adjsuting speed.
         '''
 
-        if self.state is False:
+        if self._enable is False:
             raise ValueError("Motors must be enable to step.")
 
         if step_count < 0:
@@ -168,16 +168,16 @@ if __name__ == "__main__":
         mode_pins=(3, None, None),
         step_mode='1/2')
 
-    delay = 10  # delay time in ms
+    delay = 1000  # delay time in ms
 
     try:
 
         stepper1.enable()
 
         while True:
-            stepper1.move_steps('forward', 4000, delay=0)
+            stepper1.move_steps('forward', 200, delay=0)
             utime.sleep_ms(delay)
-            stepper1.move_steps('backward', 4000, delay=0)
+            stepper1.move_steps('backward', 200, delay=0)
             utime.sleep_ms(delay)
 
     except KeyboardInterrupt:

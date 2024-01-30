@@ -107,7 +107,7 @@ class Stepper:
         self.enable_pin.value(1)
         self.state = False
 
-    def move_steps(self, direction: str, step_count: int, delay=0, limit_switch=None) -> None:
+    def move_steps(self, direction: str, step_count: int, delay=0) -> None:
         '''
         Function to move a given number of steps in a certain direction.
 

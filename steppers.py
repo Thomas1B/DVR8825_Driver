@@ -160,8 +160,15 @@ class Stepper:
 
 if __name__ == "__main__":
 
-    stepper1 = Stepper(0, 1, 2, mode_pins=(3, None, None),
-                       step_mode='1/2')
+    # Creating stepper object
+    stepper1 = Stepper(
+        dir_pin=0,
+        step_pin=1,
+        enable_pin=2,
+        mode_pins=(3, None, None),
+        step_mode='1/2')
+
+    delay = 10  # delay time in ms
 
     try:
 
@@ -169,9 +176,9 @@ if __name__ == "__main__":
 
         while True:
             stepper1.move_steps('forward', 4000, delay=0)
-            utime.sleep(1)
-            stepper1.move_steps('backward', 4000, delay=50)
-            utime.sleep(1)
+            utime.sleep_ms(delay)
+            stepper1.move_steps('backward', 4000, delay=0)
+            utime.sleep_ms(delay)
 
     except KeyboardInterrupt:
         stepper1.disable()

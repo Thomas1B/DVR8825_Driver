@@ -151,6 +151,12 @@ class Stepper:
             delay=delay
         )
 
+    def stop(self):
+        '''
+        Function to stop motor.
+        '''
+        self.step_pin.value(0)
+
 
 if __name__ == "__main__":
 

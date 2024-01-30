@@ -48,7 +48,7 @@ class Stepper:
         self.enable_pin = Pin(enable_pin, Pin.OUT)
 
         # Scale factors for microsteps per phase for modes
-        microsteps = {
+        self.microsteps = {
             'FULL': 1,
             '1/2': 2,
             '1/4': 4,
@@ -83,9 +83,10 @@ class Stepper:
         self.state = False  # motor running state
         self.disable()
 
-        self.delay = .005/microsteps[step_mode]  # default delay for stepping
+        # self.delay = .005/microsteps[step_mode]  # default delay for stepping
+        self.delay = 20  # default delay for stepping
+        self.step_mode = step_mode
         self.step_per_rev = steps_per_rev
-        self.adj_steps_per_rev = steps_per_rev * microsteps[step_mode]
 
     def enable(self) -> None:
         '''
@@ -106,7 +107,7 @@ class Stepper:
         self.enable_pin.value(1)
         self.state = False
 
-    def move_steps(self, direction: str, step_count: int, delay=0) -> None:
+    def move_steps(self, direction: str, step_count: int, delay=0, limit_switch=None) -> None:
         '''
         Function to move a given number of steps in a certain direction.
 
@@ -116,11 +117,14 @@ class Stepper:
             delay (default 0): delay time (microseconds) for adjsuting speed.
         '''
 
-        if self.state == False:
+        if self.state is False:
             raise ValueError("Motors must be enable to step.")
 
         if step_count < 0:
             raise ValueError('Parameter "step_count" must be greater than 0.')
+
+        if type(delay) is not int:
+            raise ValueError(f'Parameter "delay" must be an integer.')
 
         while step_count > 0:
             step_count -= 1
@@ -130,8 +134,22 @@ class Stepper:
                 self.dir_pin.value(1)
 
             self.step_pin.value(0)
+            utime.sleep_us(1)
             self.step_pin.value(1)
-            utime.sleep_us(400 + (delay))
+            utime.sleep_us(400 + delay)
+
+    def revolution(self, rev_count, direction='forward', delay=0):
+        '''
+        Function to spin a given number of complete revolution
+        '''
+
+        steps_per_rev = rev_count*self.step_per_rev * \
+            self.microsteps[self.step_mode]
+        self.move_steps(
+            direction=direction,
+            step_count=steps_per_rev,
+            delay=delay
+        )
 
 
 if __name__ == "__main__":
@@ -139,17 +157,15 @@ if __name__ == "__main__":
     stepper1 = Stepper(0, 1, 2, mode_pins=(3, None, None),
                        step_mode='1/2')
 
-    stepper1.enable()
+    try:
 
-    print(stepper1.step, stepper1.distance)
-    for _ in range(2):
-        stepper1.move_steps('forward', 4000, delay=0)
-        print(stepper1.step, stepper1.distance)
+        stepper1.enable()
 
-        utime.sleep(2)
-        stepper1.move_steps('backward', 4000, delay=500)
-        print(stepper1.step, stepper1.distance)
-        utime.sleep(2)
+        while True:
+            stepper1.move_steps('forward', 4000, delay=0)
+            utime.sleep(1)
+            stepper1.move_steps('backward', 4000, delay=50)
+            utime.sleep(1)
 
-    print(stepper1.step, stepper1.distance)
-    stepper1.disable()
+    except KeyboardInterrupt:
+        stepper1.disable()

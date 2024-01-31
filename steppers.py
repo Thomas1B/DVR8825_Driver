@@ -74,14 +74,14 @@ class Stepper:
         # if any mode pins have been given intialize them
         if mode_pins[0]:
             self.mode0 = Pin(mode_pins[0], Pin.OUT)
-            self.mode0.value(mode_config[step_mode])
+            self.mode0.value(mode_config[step_mode][0])
         if mode_pins[1]:
             self.mode1 = Pin(mode_pins[1], Pin.OUT)
-            self.mode0.value(mode_config[step_mode])
+            self.mode0.value(mode_config[step_mode][1])
         if mode_pins[2]:
             self.mode0.value(mode_config[step_mode])
             self.mode2 = Pin(mode_pins[2], Pin.OUT)
-            self.mode2.value(mode_config[2])
+            self.mode2.value(mode_config[step_mode][2])
 
         self._enable = False  # motor running _enable
         self.disable()
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         step_pin=1,
         enable_pin=2,
         mode_pins=(3, None, None),
-        step_mode='1/2')
+        step_mode='FULL')
 
     delay = 1000  # delay time in ms
 

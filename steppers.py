@@ -105,6 +105,21 @@ class Stepper:
         self.enable_pin.value(1)
         self._enable = False
 
+    def one_step(self, direction: str) -> None:
+        '''
+        Function to make motor take one step in a given direction:
+
+        Parameters:
+            direction: 'forward' - CCW, 'backward' - CW
+        '''
+        if direction == 'forward':
+            self.dir_pin.value(0)
+        elif direction == 'backward':
+            self.dir_pin.value(1)
+
+        self.step_pin.value(0)
+        self.step_pin.value(1)
+
     def move_steps(self, direction: str, step_count: int, delay=0) -> None:
         '''
         Function to move a given number of steps in a certain direction.
@@ -164,7 +179,7 @@ if __name__ == "__main__":
         step_pin=1,
         enable_pin=2,
         mode_pins=(3, None, None),
-        step_mode='FULL')
+        step_mode='1/2')
 
     delay = 1000  # delay time in ms
 

@@ -77,9 +77,8 @@ class Stepper:
             self.mode0.value(mode_config[step_mode][0])
         if mode_pins[1]:
             self.mode1 = Pin(mode_pins[1], Pin.OUT)
-            self.mode0.value(mode_config[step_mode][1])
+            self.mode1.value(mode_config[step_mode][1])
         if mode_pins[2]:
-            self.mode0.value(mode_config[step_mode])
             self.mode2 = Pin(mode_pins[2], Pin.OUT)
             self.mode2.value(mode_config[step_mode][2])
 

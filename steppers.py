@@ -151,19 +151,6 @@ class Stepper:
             self.step_pin.value(1)
             utime.sleep_us(400 + delay)
 
-    def revolution(self, rev_count, direction='forward', delay=0):
-        '''
-        Function to spin a given number of complete revolution
-        '''
-
-        steps_per_rev = rev_count*self.step_per_rev * \
-            self.microsteps[self.step_mode]
-        self.move_steps(
-            direction=direction,
-            step_count=steps_per_rev,
-            delay=delay
-        )
-
     def stop(self):
         '''
         Function to stop motor.
@@ -179,7 +166,8 @@ if __name__ == "__main__":
         step_pin=1,
         enable_pin=2,
         mode_pins=(3, None, None),
-        step_mode='1/2')
+        step_mode='1/2',
+        steps_per_rev=400)
 
     delay = 1000  # delay time in ms
 

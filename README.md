@@ -2,7 +2,7 @@
 
 This is a micropython module for the DVR8825 stepper driver.
 
-This is based off of https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script and https://github.com/dimschlukas/rpi_python_drv8825/blob/master/example.py.
+This is based off of https://github.com/pedromneto97/AccelStepper-MicroPython/blob/master/AccelStepper.py and https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script.
 
 ## Class Description
 

@@ -26,7 +26,6 @@ class Stepper:
                  mode_pins=(None, None, None)  # mode pins (M0, M1, M2)
                  ) -> None:
 
-        self.steps_number = 0  # which step the motor is on.
         self.direction = CCW  # direction of motor: 0 - CCW, 1 - CW
         self.steps_per_rev = step_per_rev  # steps per revolution
 
@@ -94,7 +93,7 @@ class Stepper:
             self.direction = CW
             self.dir_pin.value(CW)
 
-    def move_steps(self, steps):
+    def old_move_steps(self, steps):
         '''
         Function to move motor a given number of steps.
         '''
@@ -116,23 +115,46 @@ class Stepper:
             self.step_pin.value(1)
             utime.sleep_us(self.delay)
 
+# ************************* TESTING *************************
+
+
+def example1():
+
+    stepper1 = Stepper(step_per_rev=200,
+                       dir_pin=0,
+                       step_pin=1,
+                       enable_pin=2)
+    stepper1.set_speed(100)
+    stepper1.enable()
+
+    for _ in range(2):
+        stepper1.old_move_steps(200)
+        utime.sleep(0.25)
+        stepper1.old_move_steps(-200)
+        utime.sleep(0.5)
+
+    utime.sleep(0.5)
+    stepper1.old_move_steps(200)
+    stepper1.old_move_steps(-200)
+    utime.sleep(0.5)
+
+    stepper1.set_speed(800)
+    stepper1.old_move_steps(2500)
+
+    stepper1.disable()
+
 
 if __name__ == '__main__':
 
     try:
-        stepper = Stepper(200, 0, 1, 2)
-        stepper.set_speed(200)
 
-        stepper.enable()
-        rpm = stepper.get_speed()
-        print(f'SPEED: {rpm} RPM')
+        stepper1 = Stepper(step_per_rev=200,
+                           dir_pin=0,
+                           step_pin=1,
+                           enable_pin=2)
 
-        while True:
-            stepper.move_steps(200)
-            utime.sleep(2)
-            
-            stepper.move_steps(-200)
-            utime.sleep(5)
+        example1()
 
+        stepper1.disable()
     except KeyboardInterrupt:
-        stepper.disable()
+        stepper1.disable()

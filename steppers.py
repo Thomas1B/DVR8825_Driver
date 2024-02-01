@@ -64,20 +64,19 @@ class Stepper:
                  step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
-        self.direction = CCW  # direction of motor: 0 - CCW, 1 - CW
+        self._step_mode = step_mode  # not currently used
         self.steps_per_rev = step_per_rev  # steps per revolution
 
-        # direction, step and enable pin objects on Stepper Driver
+        # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
         self.step_pin = Pin(step_pin, Pin.OUT)
         self.enable_pin = Pin(enable_pin, Pin.OUT)
 
-        self.enabled = False  # motor is ready to run
+        self.enabled = False  # operating state of motor
         self.disable()
 
-        self._step_mode = step_mode
-
-        self.set_speed(10)  # setting default speed
+        self._step_interval = 1000  # microseconds
+        self._speed = 0  # steps/sec
 
     def enable(self) -> None:
         '''
@@ -105,7 +104,7 @@ class Stepper:
 
         # Calculating delay time between each step in microseconds (delay/step).
         delay = abs(1e6/speed)
-        self._delay = round(delay)  # microseconds/step
+        self._step_interval = round(delay)  # microseconds/step
         self._steps_per_sec = speed
 
     def set_direction(self, direction: int):
@@ -143,7 +142,7 @@ class Stepper:
             steps_to_do -= 1
             self.step_pin.value(0)
             self.step_pin.value(1)
-            utime.sleep_us(self._delay)
+            utime.sleep_us(self._step_interval)
 
 # ************************* TESTING *************************
 
@@ -182,10 +181,10 @@ if __name__ == '__main__':
                            )
         stepper1.enable()
 
-        stepper1.set_speed(400)
-        stepper1.move_steps(200)
-
-        # example1(stepper1)
+        stepper1.set_speed(1000)
+        stepper1.move_steps(1000)
+        utime.sleep(1)
+        stepper1.move_steps(-1000)
 
         stepper1.disable()
     except KeyboardInterrupt:

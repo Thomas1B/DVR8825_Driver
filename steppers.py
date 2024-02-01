@@ -12,18 +12,56 @@ import utime
 from machine import Pin
 
 
-# DO NOT CHANGE
+# ************** User Parameters *************
+STEPS_PER_MM = 60
+
+
+# ************** System Parameters *************
+
 CCW = 0  # Counter-Clockwise.
 CW = 1  # Clockwise.
+MM_PER_STEP = 1/STEPS_PER_MM
+
+
+# ************** Functions *************
+
+def constrain(val, min_val, max_val):
+    '''
+    Function to contrain a value between 2 other values
+
+    Parameters:
+        val: value to constrain.
+        min_val: minimum allowed value.
+        max_val: maximum allowed value.
+
+    Returns:
+        float of contrained value.
+    '''
+
+    # Works by take largest of the minimum allowed value and given value,
+    # then taking the smallest of that result and the maximum allowed.
+    return min(max_val, max(min_val, val))
 
 
 class Stepper:
+    '''
+    Class for stepper motor control using a DVR8825 Stepper Driver.
+
+    Parameters:
+        steps_per_rev: number of steps/revolution in full mode.
+        dir_pin: pin number used for direction pin.
+        step_pin: pin numbser used for step pin.
+        enable_pin: pin number used for the enable pin.
+        step_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
+    '''
+
     def __init__(self,
-                 step_per_rev: int,  # number of steps per revolution
+                 # number of steps per revolution in full step.
+                 step_per_rev: int,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin: int,  # enable pin #.
-                 mode_pins=(None, None, None)  # mode pins (M0, M1, M2)
+                 step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
         self.direction = CCW  # direction of motor: 0 - CCW, 1 - CW
@@ -37,8 +75,9 @@ class Stepper:
         self.enabled = False  # motor is ready to run
         self.disable()
 
-        # setting default speed
-        self.set_speed(75)
+        self._step_mode = step_mode
+
+        self.set_speed(10)  # setting default speed
 
     def enable(self) -> None:
         '''
@@ -58,25 +97,16 @@ class Stepper:
 
     def set_speed(self, speed) -> None:
         '''
-        Function to set the motors speed.
+        Function to set the motors speed in steps/second.
 
         Parameters:
-            speed: speed of motor in RPM.        
+            speed: speed of motor in steps/second.
         '''
 
         # Calculating delay time between each step in microseconds (delay/step).
-        # 1. Convert minute to microseconds.
-        # 2. Divide by total number of steps per revolution.
-        # 3. Divide by desired speed in steps per minute.
-        delay = ((60*1e3*1e3) / self.steps_per_rev) / speed
-        self.delay = round(delay)
-
-    def get_speed(self) -> float:
-        '''
-        Function to calculate the speed of the motor in rpm.
-        '''
-        rpm = 1/(self.steps_per_rev * self.delay) * 60 * 1e3 * 1e3
-        return round(rpm, 2)
+        delay = abs(1e6/speed)
+        self._delay = round(delay)  # microseconds/step
+        self._steps_per_sec = speed
 
     def set_direction(self, direction: int):
         '''
@@ -93,7 +123,7 @@ class Stepper:
             self.direction = CW
             self.dir_pin.value(CW)
 
-    def old_move_steps(self, steps):
+    def move_steps(self, steps):
         '''
         Function to move motor a given number of steps.
         '''
@@ -113,35 +143,32 @@ class Stepper:
             steps_to_do -= 1
             self.step_pin.value(0)
             self.step_pin.value(1)
-            utime.sleep_us(self.delay)
+            utime.sleep_us(self._delay)
 
 # ************************* TESTING *************************
 
 
-def example1():
+def example1(stepper):
 
-    stepper1 = Stepper(step_per_rev=200,
-                       dir_pin=0,
-                       step_pin=1,
-                       enable_pin=2)
-    stepper1.set_speed(100)
-    stepper1.enable()
+    print('Example 1')
+
+    stepper.enable()
 
     for _ in range(2):
-        stepper1.old_move_steps(200)
+        stepper.move_steps(200)
         utime.sleep(0.25)
-        stepper1.old_move_steps(-200)
+        stepper.move_steps(-200)
         utime.sleep(0.5)
 
     utime.sleep(0.5)
-    stepper1.old_move_steps(200)
-    stepper1.old_move_steps(-200)
+    stepper.move_steps(200)
+    stepper.move_steps(-200)
     utime.sleep(0.5)
 
-    stepper1.set_speed(800)
-    stepper1.old_move_steps(2500)
+    stepper.set_speed(500)
+    stepper.move_steps(2500)
 
-    stepper1.disable()
+    stepper.disable()
 
 
 if __name__ == '__main__':
@@ -149,11 +176,16 @@ if __name__ == '__main__':
     try:
 
         stepper1 = Stepper(step_per_rev=200,
-                           dir_pin=0,
-                           step_pin=1,
-                           enable_pin=2)
+                           dir_pin=4,
+                           step_pin=5,
+                           enable_pin=6,
+                           )
+        stepper1.enable()
 
-        example1()
+        stepper1.set_speed(400)
+        stepper1.move_steps(200)
+
+        # example1(stepper1)
 
         stepper1.disable()
     except KeyboardInterrupt:

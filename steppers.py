@@ -139,8 +139,27 @@ class Basic_Stepper:
         '''
         Function to take one step.
         '''
+
+        if self._current_pos == self._target_pos:
+            # if the current position is already at the targer position no nothing
+            return
+
+        if self.enabled is False:
+            raise ValueError(
+                "A motor is disabled, call '.enable()' to enable it, motors need to be enabled before operating.")
+
+        if self._step_interval <= 0:
+            self.disable()
+            raise ValueError(
+                ("Stepper needs a speed, call .set_speed() to set a speed before operating."))
+
         self.step_pin.value(0)
         self.step_pin.value(1)
+
+        if self._direction == CCW:
+            self._current_pos += 1
+        else:
+            self._current_pos -= 1
 
     def move_to(self, absolute: int) -> None:
         '''
@@ -171,18 +190,6 @@ class Basic_Stepper:
             steps: + steps is CCW, - steps is CW
         '''
 
-        if self._current_pos == self._target_pos:
-            # if the current position is already at the targer position no nothing
-            return
-
-        if self.enabled is False:
-            self.disable()
-            raise ValueError("The stepper motor must be enabled to operate.")
-
-        if self._step_interval <= 0:
-            self.disable()
-            raise ValueError(("Stepper needs a speed, call .set_speed()."))
-
         # Positive steps rotate counter-clockwise.
         # Negative steps rotate clockwise.
         direction = CCW if steps > 0 else CW
@@ -190,10 +197,6 @@ class Basic_Stepper:
 
         steps_to_do = abs(steps)
         while steps_to_do > 0:
-            if direction == CCW:
-                self._current_pos += 1
-            else:
-                self._current_pos -= 1
             steps_to_do -= 1
             self.one_step()
             utime.sleep_us(self._step_interval)
@@ -234,6 +237,7 @@ if __name__ == '__main__':
                                  step_pin=5,
                                  enable_pin=6,
                                  )
+
         stepper1.enable()
         stepper1.set_speed(400)
 

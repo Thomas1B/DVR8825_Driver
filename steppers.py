@@ -65,12 +65,12 @@ def check_limit_switches(pins=[]) -> bool:
         return False
 
 
-def mm_to_steps(mm) -> int:
+def mm_to_steps(mm: int | float) -> int:
     '''
     Function to convert millimeters into steps.
 
     Parameters:
-        mm: millimeters:
+        mm: some distance in millimeters
 
     Returns:
         number of steps
@@ -279,19 +279,28 @@ class Basic_Stepper:
 
     def current_position(self) -> int:
         '''
-        Function to get the current position in steps.
+        Function to get the current position in steps in absolute position.
+
+        Returns: int
+            number of steps.
         '''
         return self._current_pos
 
     def target_position(self) -> int:
         '''
-        Function to get the target position in steps.
+        Function to get the target position in steps in absolute positioning.
+
+        Returns: int
+            number of steps
         '''
         return self._target_pos
 
     def steps_to_target(self) -> int:
         '''
-        Function to calculate the number of steps until to the target position.
+        Function to calculate the number of steps from the current position to the target position.
+
+        Returns: int
+            number of steps
         '''
         steps = self._target_pos - self._current_pos
         return steps

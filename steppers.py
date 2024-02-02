@@ -48,7 +48,7 @@ class Basic_Stepper:
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
     Parameters:
-        full_step_angle: 
+        full_step_angle: phase in full mode in degrees.
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
@@ -56,17 +56,20 @@ class Basic_Stepper:
     '''
 
     def __init__(self,
-                 # number of steps per revolution in full step.
-                 full_step_angle: int,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin: int,  # enable pin #.
+                 full_step_angle=1.8,  # phase angle in full mode in degrees.
                  driver_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
+        # Variable incase user needs to override direction of a motor.
+        self.__CCW = CCW
+        self.__CW = CW
+
         self._step_mode = driver_mode  # what microstepping mode.
         self.steps_per_rev = 360/full_step_angle  # steps per revolution.
-        self._direction = CCW
+        self._direction = self.__CCW
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -122,16 +125,16 @@ class Basic_Stepper:
         '''
         Function to set the direcion of the motor
         '''
-        if direction not in [CCW, CW]:
+        if direction not in [self.__CCW, self.__CW]:
             raise ValueError(
                 'Direction must be either "0 - Counter-Clockwise" or "1 - Clockwise" ')
 
-        if direction == CCW:
-            self.direction = CCW
+        if direction == self.__CCW:
+            self.direction = self.__CCW
             self.dir_pin.value(CCW)
         else:
-            self.direction = CW
-            self.dir_pin.value(CW)
+            self.direction = self.__CW
+            self.dir_pin.value(self.__CW)
 
     def one_step(self) -> None:
         '''
@@ -140,13 +143,29 @@ class Basic_Stepper:
         self.step_pin.value(0)
         self.step_pin.value(1)
 
+    def move_to(self, absolute) -> None:
+        '''
+        Function to move to an absolution position.
+
+        Parameters:
+            absolute: absolute position in steps from home position.
+        '''
+
+        if self._target_pos != absolute:
+            self._target_pos = absolute
+            self.move_steps(self.steps_to_target())
+
     def move_steps(self, steps: int):
         '''
         Function to move motor a given number of steps.
 
         Parameters:
-            steps: -steps is CCW, +steps is CW
+            steps: + steps is CCW, - steps is CW
         '''
+
+        if self._current_pos == self._target_pos:
+            # if the current position is already at the targer position no nothing
+            return
 
         if self.enabled is False:
             self.disable()
@@ -158,18 +177,20 @@ class Basic_Stepper:
 
         # Positive steps rotate counter-clockwise.
         # Negative steps rotate clockwise.
-        if steps > 0:
-            self.set_direction(CCW)
-            self._current_pos -= 1
-        elif steps < 0:
-            self._current_pos += 1
-            self.set_direction(CW)
+        direction = self.__CCW if steps > 0 else self.__CW
+        self.set_direction(direction)
 
         steps_to_do = abs(steps)
         while steps_to_do > 0:
+            if direction == CCW:
+                self._current_pos += 1
+            else:
+                self._current_pos -= 1
             steps_to_do -= 1
             self.one_step()
             utime.sleep_us(self._step_interval)
+
+        print(f"new current pos: {self._current_pos}")
 
     def current_position(self) -> int:
         '''
@@ -183,11 +204,15 @@ class Basic_Stepper:
         '''
         return self._target_pos
 
-    def steps_to_go(self) -> int:
+    def steps_to_target(self) -> int:
         '''
         Function to calculate the number of steps until to the target position.
         '''
-        return self._target_pos - self._current_pos
+        steps = self._target_pos - self._current_pos
+        print(
+            f'target = {self._target_pos}, current: {self._current_pos}', end=', ')
+        print(f"Steps to target: {steps}")
+        return steps
 
 
 # ************************* TESTING *************************
@@ -219,13 +244,24 @@ if __name__ == '__main__':
     try:
 
         stepper1 = Basic_Stepper(full_step_angle=1.8,
-                           dir_pin=4,
-                           step_pin=5,
-                           enable_pin=6,
-                           )
+                                 dir_pin=4,
+                                 step_pin=5,
+                                 enable_pin=6,
+                                 )
         stepper1.enable()
+        stepper1.set_speed(400)
 
-        example1(stepper1)
+        delay = 250
+
+        stepper1.move_to(300)
+        utime.sleep_ms(delay)
+        stepper1.move_to(250)
+        utime.sleep_ms(delay)
+        stepper1.move_to(350)
+        utime.sleep_ms(delay)
+        stepper1.move_to(300)
+
+        # example1(stepper1)
 
         stepper1.disable()
     except KeyboardInterrupt:

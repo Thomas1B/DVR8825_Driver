@@ -4,8 +4,8 @@ Written 2024
 Micropython module for the DVR8825 Stepper motor drive to used with the Pi Pico.
 
 Rotation Directions:
-    - Positive steps rotate counter-clockwise (CCW).
-    - Negative steps rotate clockwise (CW).
+    - Positive steps rotate counter-clockwise (CCW) to the left.
+    - Negative steps rotate clockwise (CW) to the right.
 '''
 
 import utime
@@ -13,7 +13,7 @@ from machine import Pin
 
 
 # ************** User Parameters *************
-STEPS_PER_MM = 60
+STEPS_PER_MM = 30
 
 
 # ************** System Parameters *************
@@ -64,8 +64,9 @@ class Stepper:
                  step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
-        self._step_mode = step_mode  # not currently used
-        self.steps_per_rev = step_per_rev  # steps per revolution
+        self._step_mode = step_mode  # what microstepping mode.
+        self.steps_per_rev = step_per_rev  # steps per revolution.
+        self._direction = CCW
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -75,8 +76,11 @@ class Stepper:
         self.enabled = False  # operating state of motor
         self.disable()
 
-        self._step_interval = 1000  # microseconds
-        self._speed = 0  # steps/sec
+        self._lastStepTime = 0
+        self._step_interval = 0  # microseconds/step
+        self._steps_per_sec = 0  # steps/sec
+        self._current_pos = 0  # in steps
+        self._target_pos = 0  # in steps, negative steps to the left.
 
     def enable(self) -> None:
         '''
@@ -94,18 +98,24 @@ class Stepper:
         self.enable_pin.value(1)
         self.enabled = False
 
-    def set_speed(self, speed) -> None:
+    def set_speed(self, steps_per_sec) -> None:
         '''
         Function to set the motors speed in steps/second.
 
         Parameters:
-            speed: speed of motor in steps/second.
+            steps_per_sec: speed of motor in steps/second.
         '''
 
-        # Calculating delay time between each step in microseconds (delay/step).
-        delay = abs(1e6/speed)
-        self._step_interval = round(delay)  # microseconds/step
-        self._steps_per_sec = speed
+        if steps_per_sec == 0:
+            self._step_interval = 0
+
+        else:
+            # Calculating delay time between each step in microseconds (delay/step).
+            # 1e6 convert seconds to microseconds.
+            delay = abs(1e6/steps_per_sec)
+            self._step_interval = round(delay)  # microseconds/step
+
+        self._steps_per_sec = steps_per_sec
 
     def set_direction(self, direction: int):
         '''
@@ -122,19 +132,27 @@ class Stepper:
             self.direction = CW
             self.dir_pin.value(CW)
 
-    def move_steps(self, steps):
+    def move_steps(self, steps: int):
         '''
         Function to move motor a given number of steps.
+
+        Parameters:
+            steps: -steps is CCW, +steps is CW
         '''
 
         if self.enabled is False:
             raise ValueError("The stepper motor must be enabled to operate.")
 
+        if self._step_interval <= 0:
+            raise ValueError(("Stepper needs a speed, call .set_speed()."))
+
         # Positive steps rotate counter-clockwise.
         # Negative steps rotate clockwise.
         if steps > 0:
             self.set_direction(CCW)
+            self._current_pos -= 1
         elif steps < 0:
+            self._current_pos += 1
             self.set_direction(CW)
 
         steps_to_do = abs(steps)
@@ -144,6 +162,25 @@ class Stepper:
             self.step_pin.value(1)
             utime.sleep_us(self._step_interval)
 
+    def current_position(self) -> int:
+        '''
+        Function to get the current position in steps.
+        '''
+        return self._current_pos
+
+    def target_position(self) -> int:
+        '''
+        Function to get the target position in steps.
+        '''
+        return self._target_pos
+
+    def steps_to_go(self) -> int:
+        '''
+        Function to calculate the number of steps until to the target position.
+        '''
+        return self._target_pos - self._current_pos
+
+
 # ************************* TESTING *************************
 
 
@@ -152,6 +189,7 @@ def example1(stepper):
     print('Example 1')
 
     stepper.enable()
+    stepper.set_speed(steps_per_sec(40))
 
     for _ in range(2):
         stepper.move_steps(200)
@@ -160,12 +198,9 @@ def example1(stepper):
         utime.sleep(0.5)
 
     utime.sleep(0.5)
-    stepper.move_steps(200)
-    stepper.move_steps(-200)
-    utime.sleep(0.5)
-
     stepper.set_speed(500)
-    stepper.move_steps(2500)
+    stepper.move_steps(400)
+    utime.sleep(0.5)
 
     stepper.disable()
 
@@ -181,10 +216,7 @@ if __name__ == '__main__':
                            )
         stepper1.enable()
 
-        stepper1.set_speed(1000)
-        stepper1.move_steps(1000)
-        utime.sleep(1)
-        stepper1.move_steps(-1000)
+        example1(stepper1)
 
         stepper1.disable()
     except KeyboardInterrupt:

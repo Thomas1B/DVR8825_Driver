@@ -48,24 +48,24 @@ class Stepper:
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
     Parameters:
-        steps_per_rev: number of steps/revolution in full mode.
+        motor_step_angle: 
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
-        step_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
+        driver_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
     '''
 
     def __init__(self,
                  # number of steps per revolution in full step.
-                 step_per_rev: int,
+                 motor_step_angle: int,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin: int,  # enable pin #.
-                 step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
+                 driver_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
-        self._step_mode = step_mode  # what microstepping mode.
-        self.steps_per_rev = step_per_rev  # steps per revolution.
+        self._step_mode = driver_mode  # what microstepping mode.
+        self.steps_per_rev = motor_step_angle  # steps per revolution.
         self._direction = CCW
 
         # Pin objects for direction, step and enable

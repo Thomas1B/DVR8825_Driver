@@ -128,11 +128,11 @@ class Basic_Stepper:
         Function to set the direcion of the motor.
 
         Parameters:
-            int: 
+            int: direction motor spins, 0, 1
         '''
         if direction not in [CCW, CW]:
             raise ValueError(
-                'Direction must be either "0 - Counter-Clockwise" or "1 - Clockwise" ')
+                'Direction must be either the integer "0" or "1".')
 
         if direction == CCW:
             self._direction = CCW
@@ -249,10 +249,9 @@ if __name__ == '__main__':
 
         stepper1.set_speed(400)
 
-        stepper1.move_to_absolute(400)
+        stepper1.move_to_absolute(200)
         print(stepper1._current_pos)
-        stepper1.move_to_absolute(0)
-        print(stepper1._current_pos)
+        stepper1.move_to_relative(200)
 
         stepper1.disable()
     except KeyboardInterrupt:

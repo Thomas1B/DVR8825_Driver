@@ -280,10 +280,10 @@ if __name__ == '__main__':
 
         limit_switch1 = Pin(13, Pin.IN)
 
-        stepper1 = Basic_Stepper(full_step_angle=1.8,
-                                 dir_pin=4,
+        stepper1 = Basic_Stepper(dir_pin=4,
                                  step_pin=5,
                                  enable_pin=6,
+                                 full_step_angle=1.8,
                                  limit_pins=[limit_switch1]
                                  )
 

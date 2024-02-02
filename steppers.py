@@ -143,7 +143,7 @@ class Basic_Stepper:
         self.step_pin.value(0)
         self.step_pin.value(1)
 
-    def move_to(self, absolute) -> None:
+    def move_to(self, absolute: int) -> None:
         '''
         Function to move to an absolution position.
 
@@ -154,6 +154,15 @@ class Basic_Stepper:
         if self._target_pos != absolute:
             self._target_pos = absolute
             self.move_steps(self.steps_to_target())
+
+    def move_relative(self, relative: int) -> None:
+        '''
+        Function to move to a point relative to the current position.
+
+        Parameters:
+            relative: relative position in steps
+        '''
+        self.move_to(self._current_pos + relative)
 
     def move_steps(self, steps: int):
         '''
@@ -253,15 +262,8 @@ if __name__ == '__main__':
 
         delay = 250
 
-        stepper1.move_to(300)
-        utime.sleep_ms(delay)
-        stepper1.move_to(250)
-        utime.sleep_ms(delay)
-        stepper1.move_to(350)
-        utime.sleep_ms(delay)
-        stepper1.move_to(300)
+        stepper1.move_to(200)
 
-        # example1(stepper1)
 
         stepper1.disable()
     except KeyboardInterrupt:

@@ -52,7 +52,7 @@ class Basic_Stepper:
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
-        driver_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
+        step_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
     '''
 
     def __init__(self,
@@ -60,10 +60,10 @@ class Basic_Stepper:
                  step_pin: int,  # step pin #.
                  enable_pin: int,  # enable pin #.
                  full_step_angle=1.8,  # phase angle in full mode in degrees.
-                 driver_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
+                 step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
-        self._step_mode = driver_mode  # what microstepping mode.
+        self._step_mode = step_mode  # what microstepping mode.
         self.steps_per_rev = 360/full_step_angle  # steps per revolution.
         self._direction = CCW
 

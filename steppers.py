@@ -179,7 +179,7 @@ class Basic_Stepper:
             self._target_pos = absolute
             self.move_steps(self.steps_to_target())
 
-    def move_relative(self, relative: int) -> None:
+    def move_to_relative(self, relative: int) -> None:
         '''
         Function to move to a point relative to the current position.
 

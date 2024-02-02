@@ -135,10 +135,10 @@ class Basic_Stepper:
                 'Direction must be either "0 - Counter-Clockwise" or "1 - Clockwise" ')
 
         if direction == CCW:
-            self.direction = CCW
+            self._direction = CCW
             self.dir_pin.value(CCW)
         else:
-            self.direction = CW
+            self._direction = CW
             self.dir_pin.value(CW)
 
     def one_step(self) -> None:
@@ -167,6 +167,8 @@ class Basic_Stepper:
         else:
             self._current_pos -= 1
 
+        print(self._current_pos)
+
     def move_to_absolute(self, absolute: int) -> None:
         '''
         Function to move to an absolution position.
@@ -194,6 +196,7 @@ class Basic_Stepper:
 
         Parameters:
             steps: + steps is CCW, - steps is CW
+            condition (optional): True/False condition to stop motors
         '''
 
         # Positive steps rotate counter-clockwise.
@@ -202,12 +205,13 @@ class Basic_Stepper:
         self.set_direction(direction)
 
         steps_to_do = abs(steps)
+        lastread = utime.ticks_us()
         while steps_to_do > 0:
-            steps_to_do -= 1
-            self.one_step()
-            utime.sleep_us(self._step_interval)
-
-        print(f"new current pos: {self._current_pos}")
+            cur_time = utime.ticks_us()
+            if cur_time - lastread >= self._step_interval:
+                steps_to_do -= 1
+                self.one_step()
+                lastread = cur_time
 
     def current_position(self) -> int:
         '''
@@ -226,9 +230,6 @@ class Basic_Stepper:
         Function to calculate the number of steps until to the target position.
         '''
         steps = self._target_pos - self._current_pos
-        print(
-            f'target = {self._target_pos}, current: {self._current_pos}', end=', ')
-        print(f"Steps to target: {steps}")
         return steps
 
 
@@ -248,7 +249,10 @@ if __name__ == '__main__':
 
         stepper1.set_speed(400)
 
-        stepper1.move_to_absolute(200)
+        stepper1.move_to_absolute(400)
+        print(stepper1._current_pos)
+        stepper1.move_to_absolute(0)
+        print(stepper1._current_pos)
 
         stepper1.disable()
     except KeyboardInterrupt:

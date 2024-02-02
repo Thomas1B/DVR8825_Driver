@@ -77,7 +77,7 @@ def mm_to_steps(mm) -> int:
     '''
 
     steps = mm * STEPS_PER_MM
-    return steps
+    return int(steps)
 
 
 def constrain(val, min_val, max_val):
@@ -315,7 +315,7 @@ if __name__ == '__main__':
 
         stepper1.set_speed(700)
 
-        mm = 2
+        mm = 10
         steps = mm_to_steps(mm)
         print(f'Number of steps for {mm} mm, steps = {steps}')
         utime.sleep(3)

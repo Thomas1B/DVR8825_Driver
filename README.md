@@ -1,12 +1,17 @@
 # Micropython module for the DVR8825 Stepper Driver
 
-This is a micropython module for the DVR8825 stepper driver.
+This is a micropython module for the designed to be used with the **DVR8825 stepper driver**.
+However, I assume it could be used with similar drivers.
 
-This is based off of https://github.com/pedromneto97/AccelStepper-MicroPython/blob/master/AccelStepper.py and https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script.
+This module is based off of https://github.com/pedromneto97/AccelStepper-MicroPython/blob/master/AccelStepper.py and https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script.
 ## Module Functions
 
-- `Check_limit_swithces(pins) -> bool`: checks if any limit switches have been triggered.
-  - `pins` is a list of 'Pin' Objects (from machine in micropython). If no Pins are provided, function will always return `False`.
+- `check_limit_swithces(pins = [ ]) -> bool`: checks if any limit switches have been triggered.
+  - `pins` is a list of 'Pin' Objects (from machine in micropython).
+  - If no Pins are provided, function will always return `False`.
+  - Returns `True` if any switches are HIGH, `False` if any are LOW.
+
+- `
 
 ## Class Description
 

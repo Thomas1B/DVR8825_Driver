@@ -83,8 +83,8 @@ class Basic_Stepper:
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
         full_step_angle: phase angle in full mode in degrees.
-        step_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
-        limit_pins: list of input Pin objects used for limit switches.
+        step_mode (default 1): microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
+        limit_pins (default []): list of input Pin objects used for limit switches.
     '''
 
     def __init__(self,
@@ -135,38 +135,38 @@ class Basic_Stepper:
         if self.enable_pin:
             self.enable_pin.value(HIGH)
 
-    def set_speed(self, steps_per_sec) -> None:
+    def set_speed(self, s) -> None:
         '''
         Function to set the motors speed in steps/second.
 
         Parameters:
-            steps_per_sec: speed of motor in steps/second.
+            s: speed of motor in steps/second.
         '''
 
-        if steps_per_sec == 0:
+        if s == 0:
             self._step_interval = 0
             self._steps_per_sec = 0
 
         else:
             # Calculating delay time between each step in microseconds (delay/step).
             # 1e6 convert seconds to microseconds.
-            delay = abs(1e6/steps_per_sec)
+            delay = abs(1e6/s)
             self._step_interval = round(delay)  # microseconds/step
 
-            self._steps_per_sec = steps_per_sec
+            self._steps_per_sec = s
 
-    def set_direction(self, direction: int):
+    def set_direction(self, dir: int):
         '''
         Function to set the direcion of the motor.
 
         Parameters:
-            int: direction motor spins, 0, 1
+            dir: direction motor spins, 0, 1
         '''
-        if direction not in [CCW, CW]:
+        if dir not in [CCW, CW]:
             raise ValueError(
                 'Direction must be either the integer "0" or "1".')
 
-        if direction == CCW:
+        if dir == CCW:
             self._direction = CCW
             self.dir_pin.value(CCW)
         else:

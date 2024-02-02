@@ -23,7 +23,11 @@ CW = 1  # Clockwise.
 MM_PER_STEP = 1/STEPS_PER_MM
 
 
+HIGH = 1
+LOW = 0
+
 # ************** Functions *************
+
 
 def constrain(val, min_val, max_val):
     '''
@@ -58,7 +62,7 @@ class Basic_Stepper:
     def __init__(self,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
-                 enable_pin: int,  # enable pin #.
+                 enable_pin=None,  # enable pin #.
                  full_step_angle=1.8,  # phase angle in full mode in degrees.
                  step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
@@ -70,7 +74,7 @@ class Basic_Stepper:
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
         self.step_pin = Pin(step_pin, Pin.OUT)
-        self.enable_pin = Pin(enable_pin, Pin.OUT)
+        self.enable_pin = Pin(enable_pin, Pin.OUT) if enable_pin else None
 
         self.enabled = False  # operating state of motor
         self.disable()
@@ -85,17 +89,19 @@ class Basic_Stepper:
         '''
         Function to enable the motor for operation.
         '''
-        self.enable_pin.value(0)
         self.enabled = True
-        utime.sleep_ms(50)
+        if self.enable_pin:
+            self.enable_pin.value(LOW)
+            utime.sleep_ms(50)
 
     def disable(self) -> None:
         '''
         Function to disable the motor from operation.
         '''
 
-        self.enable_pin.value(1)
         self.enabled = False
+        if self.enable_pin:
+            self.enable_pin.value(HIGH)
 
     def set_speed(self, steps_per_sec) -> None:
         '''
@@ -235,13 +241,12 @@ if __name__ == '__main__':
         stepper1 = Basic_Stepper(full_step_angle=1.8,
                                  dir_pin=4,
                                  step_pin=5,
-                                 enable_pin=6,
+                                 enable_pin=6
                                  )
 
         stepper1.enable()
-        stepper1.set_speed(400)
 
-        delay = 250
+        stepper1.set_speed(400)
 
         stepper1.move_to(200)
 

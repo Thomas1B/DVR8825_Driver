@@ -43,7 +43,7 @@ def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
 
-class Stepper:
+class Basic_Stepper:
     '''
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
     try:
 
-        stepper1 = Stepper(full_step_angle=1.8,
+        stepper1 = Basic_Stepper(full_step_angle=1.8,
                            dir_pin=4,
                            step_pin=5,
                            enable_pin=6,

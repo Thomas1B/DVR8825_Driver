@@ -65,21 +65,6 @@ def check_limit_switches(pins=[]) -> bool:
         return False
 
 
-def mm_to_steps(mm: int | float) -> int:
-    '''
-    Function to convert millimeters into steps.
-
-    Parameters:
-        mm: some distance in millimeters
-
-    Returns:
-        number of steps
-    '''
-
-    steps = mm * STEPS_PER_MM
-    return int(steps)
-
-
 def constrain(val, min_val, max_val):
     '''
     Function to contrain a value between 2 other values
@@ -323,7 +308,7 @@ if __name__ == '__main__':
         stepper1.set_speed(700)
 
         mm = 20
-        steps = mm_to_steps(mm)
+        steps = mm * STEPS_PER_MM
         print(f'Number of steps for {mm} mm, steps = {steps}')
         utime.sleep(3)
 

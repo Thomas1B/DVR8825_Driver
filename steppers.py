@@ -6,6 +6,9 @@ Micropython module for the DVR8825 Stepper motor drive to used with the Pi Pico.
 '''
 
 
+import utime
+from machine import Pin
+
 '''
 Module Conventions:
 
@@ -18,10 +21,8 @@ Module Conventions:
     3. Distance and number of steps are in absolute positioning.
 '''
 
-
 # ************** User Parameters *************
-import utime
-from machine import Pin
+
 STEPS_PER_MM = 30
 
 
@@ -30,7 +31,6 @@ STEPS_PER_MM = 30
 CCW = 0  # Counter-Clockwise.
 CW = 1  # Clockwise.
 MM_PER_STEP = 1/STEPS_PER_MM
-
 
 HIGH = 1
 LOW = 0
@@ -291,7 +291,7 @@ class Basic_Stepper:
         return steps
 
 
-# ************************* TESTING *************************
+# ************************* Example *************************
 if __name__ == '__main__':
 
     try:

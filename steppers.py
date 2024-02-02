@@ -3,6 +3,7 @@ Written 2024
 
 Micropython module for the DVR8825 Stepper motor drive to used with the Pi Pico.
 
+Author: Thomas Bourgeois, Jan 2024.
 '''
 
 

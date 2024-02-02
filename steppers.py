@@ -108,6 +108,7 @@ class Stepper:
 
         if steps_per_sec == 0:
             self._step_interval = 0
+            self._steps_per_sec = 0
 
         else:
             # Calculating delay time between each step in microseconds (delay/step).
@@ -115,7 +116,7 @@ class Stepper:
             delay = abs(1e6/steps_per_sec)
             self._step_interval = round(delay)  # microseconds/step
 
-        self._steps_per_sec = steps_per_sec
+            self._steps_per_sec = steps_per_sec
 
     def set_direction(self, direction: int):
         '''
@@ -148,9 +149,11 @@ class Stepper:
         '''
 
         if self.enabled is False:
+            self.disable()
             raise ValueError("The stepper motor must be enabled to operate.")
 
         if self._step_interval <= 0:
+            self.disable()
             raise ValueError(("Stepper needs a speed, call .set_speed()."))
 
         # Positive steps rotate counter-clockwise.

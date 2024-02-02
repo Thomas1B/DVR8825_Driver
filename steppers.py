@@ -63,13 +63,9 @@ class Basic_Stepper:
                  driver_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32
                  ) -> None:
 
-        # Variable incase user needs to override direction of a motor.
-        self.__CCW = CCW
-        self.__CW = CW
-
         self._step_mode = driver_mode  # what microstepping mode.
         self.steps_per_rev = 360/full_step_angle  # steps per revolution.
-        self._direction = self.__CCW
+        self._direction = CCW
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -123,18 +119,21 @@ class Basic_Stepper:
 
     def set_direction(self, direction: int):
         '''
-        Function to set the direcion of the motor
+        Function to set the direcion of the motor.
+
+        Parameters:
+            int: 
         '''
-        if direction not in [self.__CCW, self.__CW]:
+        if direction not in [CCW, CW]:
             raise ValueError(
                 'Direction must be either "0 - Counter-Clockwise" or "1 - Clockwise" ')
 
-        if direction == self.__CCW:
-            self.direction = self.__CCW
+        if direction == CCW:
+            self.direction = CCW
             self.dir_pin.value(CCW)
         else:
-            self.direction = self.__CW
-            self.dir_pin.value(self.__CW)
+            self.direction = CW
+            self.dir_pin.value(CW)
 
     def one_step(self) -> None:
         '''
@@ -186,7 +185,7 @@ class Basic_Stepper:
 
         # Positive steps rotate counter-clockwise.
         # Negative steps rotate clockwise.
-        direction = self.__CCW if steps > 0 else self.__CW
+        direction = CCW if steps > 0 else CW
         self.set_direction(direction)
 
         steps_to_do = abs(steps)
@@ -226,28 +225,6 @@ class Basic_Stepper:
 
 # ************************* TESTING *************************
 
-
-def example1(stepper):
-
-    print('Example 1')
-
-    stepper.enable()
-    stepper.set_speed(400)
-
-    for _ in range(2):
-        stepper.move_steps(200)
-        utime.sleep(0.25)
-        stepper.move_steps(-200)
-        utime.sleep(0.5)
-
-    utime.sleep(0.5)
-    stepper.set_speed(600)
-    stepper.move_steps(400)
-    utime.sleep(0.5)
-
-    stepper.disable()
-
-
 if __name__ == '__main__':
 
     try:
@@ -263,7 +240,6 @@ if __name__ == '__main__':
         delay = 250
 
         stepper1.move_to(200)
-
 
         stepper1.disable()
     except KeyboardInterrupt:

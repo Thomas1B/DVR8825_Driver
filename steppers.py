@@ -15,7 +15,7 @@ Module Conventions:
 
     2. Speed is in steps/sec, unless specifically said.
     
-    3. 
+    3. Distance and number of steps are in absolute positioning.
 '''
 
 
@@ -106,7 +106,7 @@ class Basic_Stepper:
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
-        full_step_angle: phase angle in full mode in degrees.
+        full_step_angle (default 1.8): phase angle in full mode in degrees.
         step_mode (default 1): microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
         limit_pins (default []): list of input Pin objects used for limit switches.
     '''
@@ -320,16 +320,18 @@ if __name__ == '__main__':
                                  limit_pins=[limit_switch1]
                                  )
 
-        stepper1.enable()
-
         stepper1.set_speed(700)
 
-        mm = 10
+        mm = 20
         steps = mm_to_steps(mm)
         print(f'Number of steps for {mm} mm, steps = {steps}')
         utime.sleep(3)
 
+        stepper1.enable()
         stepper1.move_to_absolute(steps)
+        utime.sleep(1)
+
+        stepper1.move_to_relative(-steps)
 
         stepper1.disable()
 

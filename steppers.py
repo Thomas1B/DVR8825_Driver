@@ -3,16 +3,25 @@ Written 2024
 
 Micropython module for the DVR8825 Stepper motor drive to used with the Pi Pico.
 
-Rotation Directions:
-    - Positive steps rotate counter-clockwise (CCW) to the left.
-    - Negative steps rotate clockwise (CW) to the right.
 '''
 
-import utime
-from machine import Pin
+
+'''
+Module Conventions:
+
+    1. Rotation Directions:
+        - Positive steps rotate counter-clockwise (CCW) to the left.
+        - Negative steps rotate clockwise (CW) to the right.
+
+    2. Speed is in steps/sec, unless specifically said.
+    
+    3. 
+'''
 
 
 # ************** User Parameters *************
+import utime
+from machine import Pin
 STEPS_PER_MM = 30
 
 
@@ -54,6 +63,21 @@ def check_limit_switches(pins=[]) -> bool:
         return results
     else:
         return False
+
+
+def mm_to_steps(mm) -> int:
+    '''
+    Function to convert millimeters into steps.
+
+    Parameters:
+        mm: millimeters:
+
+    Returns:
+        number of steps
+    '''
+
+    steps = mm * STEPS_PER_MM
+    return steps
 
 
 def constrain(val, min_val, max_val):
@@ -291,8 +315,12 @@ if __name__ == '__main__':
 
         stepper1.set_speed(700)
 
-        stepper1.move_to_absolute(2000)
-        stepper1.move_to_absolute(200)
+        mm = 2
+        steps = mm_to_steps(mm)
+        print(f'Number of steps for {mm} mm, steps = {steps}')
+        utime.sleep(3)
+
+        stepper1.move_to_absolute(steps)
 
         stepper1.disable()
 

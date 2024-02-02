@@ -48,10 +48,10 @@ class Basic_Stepper:
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
     Parameters:
-        full_step_angle: phase in full mode in degrees.
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
+        full_step_angle: phase in full mode in degrees.
         step_mode: microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
     '''
 

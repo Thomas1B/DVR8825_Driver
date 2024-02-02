@@ -48,7 +48,7 @@ class Stepper:
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
     Parameters:
-        motor_step_angle: 
+        full_step_angle: 
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
@@ -57,7 +57,7 @@ class Stepper:
 
     def __init__(self,
                  # number of steps per revolution in full step.
-                 motor_step_angle: int,
+                 full_step_angle: int,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin: int,  # enable pin #.
@@ -65,7 +65,7 @@ class Stepper:
                  ) -> None:
 
         self._step_mode = driver_mode  # what microstepping mode.
-        self.steps_per_rev = motor_step_angle  # steps per revolution.
+        self.steps_per_rev = 360/full_step_angle  # steps per revolution.
         self._direction = CCW
 
         # Pin objects for direction, step and enable
@@ -132,6 +132,13 @@ class Stepper:
             self.direction = CW
             self.dir_pin.value(CW)
 
+    def one_step(self) -> None:
+        '''
+        Function to take one step.
+        '''
+        self.step_pin.value(0)
+        self.step_pin.value(1)
+
     def move_steps(self, steps: int):
         '''
         Function to move motor a given number of steps.
@@ -158,8 +165,7 @@ class Stepper:
         steps_to_do = abs(steps)
         while steps_to_do > 0:
             steps_to_do -= 1
-            self.step_pin.value(0)
-            self.step_pin.value(1)
+            self.one_step()
             utime.sleep_us(self._step_interval)
 
     def current_position(self) -> int:
@@ -209,7 +215,7 @@ if __name__ == '__main__':
 
     try:
 
-        stepper1 = Stepper(step_per_rev=200,
+        stepper1 = Stepper(full_step_angle=1.8,
                            dir_pin=4,
                            step_pin=5,
                            enable_pin=6,

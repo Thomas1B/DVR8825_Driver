@@ -167,7 +167,7 @@ class Basic_Stepper:
         else:
             self._current_pos -= 1
 
-    def move_to(self, absolute: int) -> None:
+    def move_to_absolute(self, absolute: int) -> None:
         '''
         Function to move to an absolution position.
 
@@ -186,7 +186,7 @@ class Basic_Stepper:
         Parameters:
             relative: relative position in steps
         '''
-        self.move_to(self._current_pos + relative)
+        self.move_to_absolute(self._current_pos + relative)
 
     def move_steps(self, steps: int):
         '''
@@ -248,7 +248,7 @@ if __name__ == '__main__':
 
         stepper1.set_speed(400)
 
-        stepper1.move_to(200)
+        stepper1.move_to_absolute(200)
 
         stepper1.disable()
     except KeyboardInterrupt:

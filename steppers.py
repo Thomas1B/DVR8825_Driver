@@ -189,7 +189,7 @@ def example1(stepper):
     print('Example 1')
 
     stepper.enable()
-    stepper.set_speed(steps_per_sec(40))
+    stepper.set_speed(400)
 
     for _ in range(2):
         stepper.move_steps(200)
@@ -198,7 +198,7 @@ def example1(stepper):
         utime.sleep(0.5)
 
     utime.sleep(0.5)
-    stepper.set_speed(500)
+    stepper.set_speed(600)
     stepper.move_steps(400)
     utime.sleep(0.5)
 

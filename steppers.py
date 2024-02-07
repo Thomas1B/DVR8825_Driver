@@ -311,7 +311,7 @@ if __name__ == '__main__':
         mm = 20
         steps = mm * STEPS_PER_MM
         print(f'Number of steps for {mm} mm, steps = {steps}')
-        utime.sleep(3)
+        utime.sleep_ms(500)
 
         stepper1.enable()
         stepper1.move_to_absolute(steps)

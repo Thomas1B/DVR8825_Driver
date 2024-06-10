@@ -39,7 +39,7 @@ LOW = 0
 # ************** Functions *************
 
 
-def check_limit_switches(pins=[]) -> bool:
+def check_limit_switches(pins=[Pin]) -> bool:
     '''
     Function used to check if a limit switch has been triggered.
         Pins are HIGH if triggered.
@@ -94,7 +94,6 @@ class Basic_Stepper:
         enable_pin: pin number used for the enable pin.
         full_step_angle (default 1.8): phase angle in full mode in degrees.
         step_mode (default 1): microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
-        limit_pins (default []): list of input Pin objects used for limit switches.
     '''
 
     def __init__(self,
@@ -103,11 +102,7 @@ class Basic_Stepper:
                  enable_pin=None,  # enable pin #.
                  full_step_angle=1.8,  # phase angle in full mode in degrees.
                  step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32,
-                 # limit_pins: list of input Pin objects used for limit switches.
-                 limit_pins=[]
                  ) -> None:
-
-        self._limit_pins = [pin for pin in limit_pins]
 
         self._step_mode = step_mode  # what microstepping mode.
         self.steps_per_rev = 360/full_step_angle  # steps per revolution.
@@ -237,7 +232,6 @@ class Basic_Stepper:
     def move_steps(self, steps: int) -> bool:
         '''
         Function to move motor a certain number of steps.
-            - If checK_limit_switches() return True, motor stop.
 
         Parameters:
             steps: + steps is CCW, - steps is CW.
@@ -258,10 +252,6 @@ class Basic_Stepper:
                 steps_to_do -= 1
                 self.one_step()
                 lastread = cur_time
-
-            if check_limit_switches(self._limit_pins):
-                utime.sleep_ms(250)  # debouncing time for limit switch.F
-                break
 
     def current_position(self) -> int:
         '''
@@ -297,13 +287,10 @@ if __name__ == '__main__':
 
     try:
 
-        limit_switch1 = Pin(13, Pin.IN)
-
         stepper1 = Basic_Stepper(dir_pin=4,
                                  step_pin=5,
                                  enable_pin=6,
                                  full_step_angle=1.8,
-                                 limit_pins=[limit_switch1]
                                  )
 
         stepper1.set_speed(700)

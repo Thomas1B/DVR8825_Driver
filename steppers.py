@@ -8,7 +8,7 @@ Author: Thomas Bourgeois, Jan 2024.
 
 
 import utime
-from machine import Pin
+from machine import Pin  # type: ignore
 
 '''
 Module Conventions:
@@ -100,13 +100,9 @@ class Basic_Stepper:
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin=None,  # enable pin #.
-                 full_step_angle=1.8,  # phase angle in full mode in degrees.
-                 step_mode=1,  # 1, 1/2, 1/4, 1/8, 1/16, 1/32,
                  ) -> None:
 
-        self._step_mode = step_mode  # what microstepping mode.
-        self.steps_per_rev = 360/full_step_angle  # steps per revolution.
-        self._direction = CCW
+        self._direction = None
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -116,11 +112,8 @@ class Basic_Stepper:
         self.enabled = False  # operating state of motor
         self.disable()
 
-        self._lastStepTime = 0
         self._step_interval = 0  # microseconds/step
         self._steps_per_sec = 0  # steps/sec
-        self._current_pos = 0  # in steps
-        self._target_pos = 0  # in steps, negative steps to the left.
 
     def enable(self) -> None:
         '''
@@ -140,15 +133,15 @@ class Basic_Stepper:
         if self.enable_pin:
             self.enable_pin.value(HIGH)
 
-    def set_speed(self, s) -> None:
+    def set_max_speed(self, s) -> None:
         '''
-        Function to set the motors speed in steps/second.
+        Function to set the motors max speed in steps/second.
 
         Parameters:
             s: speed of motor in steps/second.
         '''
 
-        if s == 0:
+        if s <= 0:
             self._step_interval = 0
             self._steps_per_sec = 0
 
@@ -165,9 +158,9 @@ class Basic_Stepper:
         Function to set the direcion of the motor.
 
         Parameters:
-            dir: direction motor spins, 0, 1
+            dir: direction motor spins, 0 - CCW, 1 - CW.
         '''
-        if dir not in [CCW, CW]:
+        if dir not in [0, 1]:
             raise ValueError(
                 'Direction must be either the integer "0" or "1".')
 
@@ -183,10 +176,6 @@ class Basic_Stepper:
         Function to take one step.
         '''
 
-        if self._current_pos == self._target_pos:
-            # if the current position is already at the targer position no nothing
-            return
-
         if self.enabled is False:
             raise ValueError(
                 "A motor is disabled, call '.enable()' to enable it, motors need to be enabled before operating."
@@ -195,52 +184,19 @@ class Basic_Stepper:
         if self._step_interval <= 0:
             self.disable()
             raise ValueError((
-                "Stepper needs a speed, call .set_speed() to set a speed before operating."
+                "Stepper needs a speed, call .set_max_speed() to set a speed before operating."
             ))
 
         self.step_pin.value(0)
         self.step_pin.value(1)
-
-        if self._direction == CCW:
-            self._current_pos += 1
-        else:
-            self._current_pos -= 1
-
-        print(self._current_pos)
-
-    def move_to_absolute(self, absolute: int) -> None:
-        '''
-        Function to move to an absolution position.
-
-        Parameters:
-            absolute: absolute position in steps from home position.
-        '''
-
-        if self._target_pos != absolute:
-            self._target_pos = absolute
-            self.move_steps(self.steps_to_target())
-
-    def move_to_relative(self, relative: int) -> None:
-        '''
-        Function to move to a point relative to the current position.
-
-        Parameters:
-            relative: relative position in steps
-        '''
-        self.move_to_absolute(self._current_pos + relative)
 
     def move_steps(self, steps: int) -> bool:
         '''
         Function to move motor a certain number of steps.
 
         Parameters:
-            steps: + steps is CCW, - steps is CW.
+            steps: number of steps to take.
         '''
-
-        # Positive steps rotate counter-clockwise.
-        # Negative steps rotate clockwise.
-        direction = CCW if steps > 0 else CW
-        self.set_direction(direction)
 
         # Performing a step of N of total steps every time the current time
         # is increased by one step interval
@@ -253,58 +209,29 @@ class Basic_Stepper:
                 self.one_step()
                 lastread = cur_time
 
-    def current_position(self) -> int:
-        '''
-        Function to get the current position in steps in absolute position.
-
-        Returns: int
-            number of steps.
-        '''
-        return self._current_pos
-
-    def target_position(self) -> int:
-        '''
-        Function to get the target position in steps in absolute positioning.
-
-        Returns: int
-            number of steps
-        '''
-        return self._target_pos
-
-    def steps_to_target(self) -> int:
-        '''
-        Function to calculate the number of steps from the current position to the target position.
-
-        Returns: int
-            number of steps
-        '''
-        steps = self._target_pos - self._current_pos
-        return steps
-
 
 # ************************* Example *************************
 if __name__ == '__main__':
 
     try:
 
-        stepper1 = Basic_Stepper(dir_pin=4,
-                                 step_pin=5,
-                                 enable_pin=6,
-                                 full_step_angle=1.8,
+        steps = 1000
+
+        stepper1 = Basic_Stepper(dir_pin=6,
+                                 step_pin=7,
+                                 enable_pin=8,
                                  )
 
-        stepper1.set_speed(700)
-
-        mm = 20
-        steps = mm * STEPS_PER_MM
-        print(f'Number of steps for {mm} mm, steps = {steps}')
-        utime.sleep_ms(500)
-
+        stepper1.set_max_speed(800)
         stepper1.enable()
-        stepper1.move_to_absolute(steps)
+
+        stepper1.set_direction(1)
+        stepper1.move_steps(steps)
+
         utime.sleep(1)
 
-        stepper1.move_to_relative(-steps)
+        stepper1.set_direction(0)
+        stepper1.move_steps(steps)
 
         stepper1.disable()
 

@@ -5,13 +5,6 @@ However, I assume it could be used with similar drivers.
 
 This module is based off of https://github.com/pedromneto97/AccelStepper-MicroPython/blob/master/AccelStepper.py and https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script.
 
-## Module Conventions
-
-  1. Rotation Directions:
-     - Positive steps rotate counter-clockwise (CCW) to the left.
-     - Negative steps rotate clockwise (CW) to the right.
-
-  2. Speed is in steps/sec, unless specifically said.
   
 
 ## Module Functions

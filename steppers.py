@@ -22,16 +22,11 @@ Module Conventions:
     3. Distance and number of steps are in absolute positioning.
 '''
 
-# ************** User Parameters *************
-
-STEPS_PER_MM = 30
-
 
 # ************** System Parameters *************
 
 CCW = 0  # Counter-Clockwise.
 CW = 1  # Clockwise.
-MM_PER_STEP = 1/STEPS_PER_MM
 
 HIGH = 1
 LOW = 0
@@ -92,8 +87,7 @@ class Basic_Stepper:
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
-        full_step_angle (default 1.8): phase angle in full mode in degrees.
-        step_mode (default 1): microstep modes, 1 - full, 1/2 - half, 1/4, 1/8, 1/16, 1/32.
+        step_mode (default 1): microstep modes, 1 - full, 2 - half, 4, 8, 16, 32.
     '''
 
     def __init__(self,
@@ -112,8 +106,8 @@ class Basic_Stepper:
         self.enabled = False  # operating state of motor
         self.disable()
 
+        self._max_speed = 0  # steps/sec
         self._step_interval = 0  # microseconds/step
-        self._steps_per_sec = 0  # steps/sec
 
     def enable(self) -> None:
         '''
@@ -122,7 +116,6 @@ class Basic_Stepper:
         self.enabled = True
         if self.enable_pin:
             self.enable_pin.value(LOW)
-            utime.sleep_ms(50)
 
     def disable(self) -> None:
         '''
@@ -132,26 +125,6 @@ class Basic_Stepper:
         self.enabled = False
         if self.enable_pin:
             self.enable_pin.value(HIGH)
-
-    def set_max_speed(self, s) -> None:
-        '''
-        Function to set the motors max speed in steps/second.
-
-        Parameters:
-            s: speed of motor in steps/second.
-        '''
-
-        if s <= 0:
-            self._step_interval = 0
-            self._steps_per_sec = 0
-
-        else:
-            # Calculating delay time between each step in microseconds (delay/step).
-            # 1e6 convert seconds to microseconds.
-            delay = abs(1e6/s)
-            self._step_interval = round(delay)  # microseconds/step
-
-            self._steps_per_sec = s
 
     def set_direction(self, dir: int):
         '''
@@ -171,37 +144,69 @@ class Basic_Stepper:
             self._direction = CW
             self.dir_pin.value(CW)
 
+    def set_max_speed(self, steps_per_sec: float) -> None:
+        '''
+        Function to set the motor's max speed in steps/second.
+
+        Parameters:
+            steps_per_sec: speed of motor in steps/second.
+        '''
+        steps_per_sec = abs(steps_per_sec)
+
+        if steps_per_sec == 0:  # speed is 0.
+            self._step_interval = 0
+            self._max_speed = 0
+
+        else:
+            # Calculating delay time between each step in microseconds (delay/step).
+            # 1e6 microseconds in 1 second.
+            delay = (1/steps_per_sec) * 1e6
+            self._step_interval = round(delay)  # microseconds/step
+
+            self._max_speed = steps_per_sec
+
     def one_step(self) -> None:
         '''
         Function to take one step.
+
+        Direction needs to be set before see "set_direction()"
+
+        Parameters:
+            None
+
+        Returns:
+            None
         '''
 
         if self.enabled is False:
-            raise ValueError(
-                "A motor is disabled, call '.enable()' to enable it, motors need to be enabled before operating."
-            )
-
-        if self._step_interval <= 0:
-            self.disable()
-            raise ValueError((
-                "Stepper needs a speed, call .set_max_speed() to set a speed before operating."
-            ))
+            text = "Motor is disabled, motors need to be enabled before operating. "
+            text += 'Call class method "enable()" on all motors before moving.'
+            raise ValueError(text)
 
         self.step_pin.value(0)
         self.step_pin.value(1)
 
-    def move_steps(self, steps: int) -> bool:
+    def move_steps(self, steps: int, condition_func=None, condition_params=None) -> None:
         '''
         Function to move motor a certain number of steps.
 
+        Direction needs to be set before see "set_direction()"
+
+
         Parameters:
             steps: number of steps to take.
+            condition_func: function to test some condition to stop motors.
+            condition_params: parameters to be passed to the condition function.
+
+
+        Returns: None
         '''
+        steps_to_do = abs(steps)
 
         # Performing a step of N of total steps every time the current time
         # is increased by one step interval
-        steps_to_do = abs(steps)
         lastread = utime.ticks_us()
+
         while steps_to_do > 0:
             cur_time = utime.ticks_us()
             if cur_time - lastread >= self._step_interval:
@@ -209,13 +214,21 @@ class Basic_Stepper:
                 self.one_step()
                 lastread = cur_time
 
+            if condition_func and condition_func(condition_params):
+                break
+
 
 # ************************* Example *************************
+
 if __name__ == '__main__':
+    print("Starting Example\n")
+
+    limit_swt = Pin(14, Pin.IN)
+    led = Pin('LED', Pin.OUT)
 
     try:
 
-        steps = 1000
+        steps = 2000
 
         stepper1 = Basic_Stepper(dir_pin=6,
                                  step_pin=7,
@@ -224,16 +237,16 @@ if __name__ == '__main__':
 
         stepper1.set_max_speed(800)
         stepper1.enable()
+        led.on()
 
         stepper1.set_direction(1)
-        stepper1.move_steps(steps)
-
-        utime.sleep(1)
-
-        stepper1.set_direction(0)
-        stepper1.move_steps(steps)
+        stepper1.move_steps(steps, check_limit_switches,
+                            condition_params=[limit_swt])
 
         stepper1.disable()
+        led.off()
+        print('Done!')
 
     except KeyboardInterrupt:
         stepper1.disable()
+        led.off()

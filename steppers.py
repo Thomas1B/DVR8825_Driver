@@ -94,8 +94,7 @@ class Stepper:
         self.enabled = False  # operating state of motor
         self.disable()
 
-        self.__max_speed_interval = 0  # steps/sec
-        self.__step_interval = 0  # microseconds/step
+        self.__max_speed_interval = 0  # microseconds/step
 
     def enable(self) -> None:
         '''
@@ -142,15 +141,13 @@ class Stepper:
         steps_per_sec = abs(steps_per_sec)
 
         if steps_per_sec == 0:  # speed is 0.
-            self.__step_interval = 0
             self.__max_speed_interval = 0
 
         else:
             # Calculating delay time between each step in microseconds (delay/step).
             # 1e6 microseconds in 1 second.
             delay = (1/steps_per_sec) * 1e6
-            self.__step_interval = round(delay)  # microseconds/step
-            self.__max_speed_interval = self.__step_interval
+            self.__max_speed_interval = round(delay)  # microseconds/step
 
     def one_step(self) -> None:
         '''
@@ -195,6 +192,7 @@ class Stepper:
         Returns: None
         '''
         steps_to_do = abs(steps)
+        step_interval = self.__max_speed_interval
 
         # Performing a step of N of total steps every time the current time
         # is increased by one step interval
@@ -202,7 +200,7 @@ class Stepper:
 
         while steps_to_do > 0:
             cur_time = utime.ticks_us()
-            if cur_time - lastread >= self.__step_interval:
+            if cur_time - lastread >= step_interval:
                 steps_to_do -= 1
                 self.one_step()
                 lastread = cur_time

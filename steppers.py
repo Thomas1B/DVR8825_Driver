@@ -84,6 +84,7 @@ class Stepper:
                  ) -> None:
 
         self.__name = name
+        self.__direction = None
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -166,9 +167,12 @@ class Stepper:
         '''
 
         if self.enabled is False:
-            text = "Motor is disabled, motors need to be enabled before operating. "
-            text += 'Call class method "enable()" on all motors before moving.'
+            text = f'Motor "{self.__name}" is disabled. Enable it before operating.'
             raise ValueError(text)
+
+        if self.__direction is None:
+            raise ValueError(
+                f'Direction for motor "{self.__name}" needs to be set before operating.')
 
         self.step_pin.value(0)
         self.step_pin.value(1)
@@ -227,7 +231,7 @@ if __name__ == '__main__':
                            )
 
         stepper1.set_max_speed(800)
-        stepper1.enable()
+        # stepper1.enable()
         led.on()
 
         stepper1.set_direction(Stepper.CW)

@@ -177,12 +177,6 @@ class Stepper:
         self.step_pin.value(0)
         self.step_pin.value(1)
 
-    def stop(self):
-        '''
-        Function to stop the motor instantly
-        '''
-        self.step_pin.low()
-
     def move_steps(self, steps: int, condition_func=None, condition_params=None) -> None:
         '''
         Function to move motor a certain number of steps.
@@ -212,6 +206,12 @@ class Stepper:
                 self.stop()
                 break
 
+    def stop(self):
+        '''
+        Function to stop the motor instantly
+        '''
+        self.step_pin.low()
+
 
 # ************************* Example *************************
 if __name__ == '__main__':
@@ -231,7 +231,7 @@ if __name__ == '__main__':
                            )
 
         stepper1.set_max_speed(800)
-        # stepper1.enable()
+        stepper1.enable()
         led.on()
 
         stepper1.set_direction(Stepper.CW)

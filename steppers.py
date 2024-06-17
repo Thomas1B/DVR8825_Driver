@@ -199,15 +199,17 @@ class Stepper:
         lastread = utime.ticks_us()
 
         while steps_to_do > 0:
-            cur_time = utime.ticks_us()
-            if cur_time - lastread >= step_interval:
-                steps_to_do -= 1
-                self.one_step()
-                lastread = cur_time
-
             if condition_func and condition_func(condition_params):
                 self.stop()
                 break
+
+            cur_time = utime.ticks_us()
+            if cur_time - lastread >= step_interval:
+                lastread = cur_time
+                self.one_step()
+                steps_to_do -= 1
+
+        self.stop()
 
 
 # ************************* Example *************************
@@ -219,7 +221,7 @@ if __name__ == '__main__':
 
     try:
 
-        steps = 20000
+        steps = 2000
 
         stepper1 = Stepper(name='A',
                            dir_pin=6,

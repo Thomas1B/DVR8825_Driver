@@ -63,6 +63,7 @@ class Stepper:
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
     Parameters:
+        name: reference name to help debugging
         dir_pin: pin number used for direction pin.
         step_pin: pin numbser used for step pin.
         enable_pin: pin number used for the enable pin.
@@ -76,12 +77,13 @@ class Stepper:
     LOW = 0
 
     def __init__(self,
+                 name: str,
                  dir_pin: int,  # direction pin #.
                  step_pin: int,  # step pin #.
                  enable_pin=None,  # enable pin #.
                  ) -> None:
 
-        self._direction = None
+        self.__name = name
 
         # Pin objects for direction, step and enable
         self.dir_pin = Pin(dir_pin, Pin.OUT)
@@ -91,8 +93,8 @@ class Stepper:
         self.enabled = False  # operating state of motor
         self.disable()
 
-        self._max_speed = 0  # steps/sec
-        self._step_interval = 0  # microseconds/step
+        self.__max_speed = 0  # steps/sec
+        self.__step_interval = 0  # microseconds/step
 
     def enable(self) -> None:
         '''
@@ -120,13 +122,13 @@ class Stepper:
         '''
         if dir not in [self.CCW, self.CW]:
             raise ValueError(
-                'Direction must be either the integer "0" or CCW or "1" for CW.')
+                f'Invalid direction: "{dir}". Direction must be either "0" or CCW or "1" for CW.')
 
         if dir == self.CCW:
-            self._direction = self.CCW
+            self.__direction = self.CCW
             self.dir_pin.value(self.CCW)
         else:
-            self._direction = self.CW
+            self.__direction = self.CW
             self.dir_pin.value(self.CW)
 
     def set_max_speed(self, steps_per_sec: float) -> None:
@@ -139,16 +141,16 @@ class Stepper:
         steps_per_sec = abs(steps_per_sec)
 
         if steps_per_sec == 0:  # speed is 0.
-            self._step_interval = 0
-            self._max_speed = 0
+            self.__step_interval = 0
+            self.__max_speed = 0
 
         else:
             # Calculating delay time between each step in microseconds (delay/step).
             # 1e6 microseconds in 1 second.
             delay = (1/steps_per_sec) * 1e6
-            self._step_interval = round(delay)  # microseconds/step
+            self.__step_interval = round(delay)  # microseconds/step
 
-            self._max_speed = steps_per_sec
+            self.__max_speed = steps_per_sec
 
     def one_step(self) -> None:
         '''
@@ -171,18 +173,21 @@ class Stepper:
         self.step_pin.value(0)
         self.step_pin.value(1)
 
+    def stop(self):
+        '''
+        Function to stop the motor instantly
+        '''
+        self.step_pin.low()
+
     def move_steps(self, steps: int, condition_func=None, condition_params=None) -> None:
         '''
         Function to move motor a certain number of steps.
-
         Direction needs to be set before see "set_direction()"
-
 
         Parameters:
             steps: number of steps to take.
             condition_func: function to test some condition to stop motors.
             condition_params: parameters to be passed to the condition function.
-
 
         Returns: None
         '''
@@ -194,17 +199,17 @@ class Stepper:
 
         while steps_to_do > 0:
             cur_time = utime.ticks_us()
-            if cur_time - lastread >= self._step_interval:
+            if cur_time - lastread >= self.__step_interval:
                 steps_to_do -= 1
                 self.one_step()
                 lastread = cur_time
 
             if condition_func and condition_func(condition_params):
+                self.stop()
                 break
 
 
 # ************************* Example *************************
-
 if __name__ == '__main__':
     print("Starting Example\n")
 
@@ -213,9 +218,10 @@ if __name__ == '__main__':
 
     try:
 
-        steps = 2000
+        steps = 20000
 
-        stepper1 = Stepper(dir_pin=6,
+        stepper1 = Stepper(name='A',
+                           dir_pin=6,
                            step_pin=7,
                            enable_pin=8,
                            )
@@ -233,5 +239,10 @@ if __name__ == '__main__':
         print('Done!')
 
     except KeyboardInterrupt:
+        stepper1.disable()
+        led.off()
+
+    except Exception as err:
+        print(err)
         stepper1.disable()
         led.off()

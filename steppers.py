@@ -1,35 +1,14 @@
 '''
-Written 2024
-
 Micropython module for the DVR8825 Stepper motor drive to used with the Pi Pico.
 
-Author: Thomas Bourgeois, Jan 2024.
+If you are concerned about real-time performance, it is best to use an Arduino.
+
 '''
 
 
 import utime
 from machine import Pin  # type: ignore
 
-'''
-Module Conventions:
-
-    1. Rotation Directions:
-        - Positive steps rotate counter-clockwise (CCW) to the left.
-        - Negative steps rotate clockwise (CW) to the right.
-
-    2. Speed is in steps/sec, unless specifically said.
-    
-    3. Distance and number of steps are in absolute positioning.
-'''
-
-
-# ************** System Parameters *************
-
-CCW = 0  # Counter-Clockwise.
-CW = 1  # Clockwise.
-
-HIGH = 1
-LOW = 0
 
 # ************** Functions *************
 
@@ -54,7 +33,7 @@ def check_limit_switches(pins=[Pin]) -> bool:
             "Parameter \"pins\" needs be a list of pin objects, [Pin], or left empty, [].")
 
     if pins:  # checking there is at least one Pin object
-        results = [True if pin.value() == HIGH else False for pin in pins]
+        results = [True if pin.value() == 1 else False for pin in pins]
         results = True if any(results) else False
         return results
     else:
@@ -79,7 +58,7 @@ def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
 
-class Basic_Stepper:
+class Stepper:
     '''
     Class for stepper motor control using a DVR8825 Stepper Driver.
 
@@ -89,6 +68,12 @@ class Basic_Stepper:
         enable_pin: pin number used for the enable pin.
         step_mode (default 1): microstep modes, 1 - full, 2 - half, 4, 8, 16, 32.
     '''
+
+    CCW = 0  # Counter-Clockwise.
+    CW = 1  # Clockwise.
+
+    HIGH = 1
+    LOW = 0
 
     def __init__(self,
                  dir_pin: int,  # direction pin #.
@@ -115,7 +100,7 @@ class Basic_Stepper:
         '''
         self.enabled = True
         if self.enable_pin:
-            self.enable_pin.value(LOW)
+            self.enable_pin.value(Stepper.LOW)
 
     def disable(self) -> None:
         '''
@@ -124,7 +109,7 @@ class Basic_Stepper:
 
         self.enabled = False
         if self.enable_pin:
-            self.enable_pin.value(HIGH)
+            self.enable_pin.value(Stepper.HIGH)
 
     def set_direction(self, dir: int):
         '''
@@ -133,16 +118,16 @@ class Basic_Stepper:
         Parameters:
             dir: direction motor spins, 0 - CCW, 1 - CW.
         '''
-        if dir not in [0, 1]:
+        if dir not in [self.CCW, self.CW]:
             raise ValueError(
-                'Direction must be either the integer "0" or "1".')
+                'Direction must be either the integer "0" or CCW or "1" for CW.')
 
-        if dir == CCW:
-            self._direction = CCW
-            self.dir_pin.value(CCW)
+        if dir == self.CCW:
+            self._direction = self.CCW
+            self.dir_pin.value(self.CCW)
         else:
-            self._direction = CW
-            self.dir_pin.value(CW)
+            self._direction = self.CW
+            self.dir_pin.value(self.CW)
 
     def set_max_speed(self, steps_per_sec: float) -> None:
         '''
@@ -230,16 +215,16 @@ if __name__ == '__main__':
 
         steps = 2000
 
-        stepper1 = Basic_Stepper(dir_pin=6,
-                                 step_pin=7,
-                                 enable_pin=8,
-                                 )
+        stepper1 = Stepper(dir_pin=6,
+                           step_pin=7,
+                           enable_pin=8,
+                           )
 
         stepper1.set_max_speed(800)
         stepper1.enable()
         led.on()
 
-        stepper1.set_direction(1)
+        stepper1.set_direction(Stepper.CW)
         stepper1.move_steps(steps, check_limit_switches,
                             condition_params=[limit_swt])
 

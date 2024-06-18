@@ -146,8 +146,7 @@ class Stepper:
         else:
             # Calculating delay time between each step in microseconds (delay/step).
             # 1e6 microseconds in 1 second.
-            delay = (1/steps_per_sec) * 1e6
-            self.__max_speed_interval = round(delay)  # microseconds/step
+            self.__max_speed_interval = (1/steps_per_sec) * 1e6  # microseconds/step
 
     def one_step(self) -> None:
         '''
@@ -197,7 +196,7 @@ class Stepper:
                 break
 
             self.one_step()
-            utime.sleep_us(self.__max_speed_interval)
+            utime.sleep(self.__max_speed_interval*1e-6)
 
         self.stop()
 

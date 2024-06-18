@@ -206,7 +206,6 @@ if __name__ == '__main__':
     print("Starting Example\n")
 
     limit_swt = Pin(14, Pin.IN)
-    led = Pin('LED', Pin.OUT)
 
     try:
 
@@ -220,16 +219,17 @@ if __name__ == '__main__':
 
         stepper1.set_max_speed(500)
         stepper1.enable()
-        led.on()
 
         stepper1.set_direction(Stepper.CW)
         stepper1.move_steps(steps, check_limit_switches,
                             condition_params=[limit_swt])
+        
+        stepper1.set_direction(Stepper.CCW)
+        stepper1.move_steps(steps, check_limit_switches,
+                            condition_params=[limit_swt])
 
         stepper1.disable()
-        led.off()
         print('Done!')
 
     except KeyboardInterrupt:
         stepper1.disable()
-        led.off()

@@ -149,7 +149,7 @@ class Stepper:
             self.__max_speed_interval = (
                 1/steps_per_sec) * 1e6  # microseconds/step
 
-    def one_step(self) -> None:
+    def _one_step(self) -> None:
         '''
         Function to take one step.
 
@@ -195,7 +195,7 @@ class Stepper:
             if condition_func and condition_func(condition_params):
                 break
 
-            self.one_step()
+            self._one_step()
             utime.sleep(self.__max_speed_interval*1e-6)
 
         self.stop()

@@ -146,7 +146,8 @@ class Stepper:
         else:
             # Calculating delay time between each step in microseconds (delay/step).
             # 1e6 microseconds in 1 second.
-            self.__max_speed_interval = (1/steps_per_sec) * 1e6  # microseconds/step
+            self.__max_speed_interval = (
+                1/steps_per_sec) * 1e6  # microseconds/step
 
     def one_step(self) -> None:
         '''
@@ -169,8 +170,7 @@ class Stepper:
             raise ValueError(
                 f'Direction for motor "{self.__name}" needs to be set before operating.')
 
-        self.step_pin.value(0)
-        self.step_pin.value(1)
+        self.step_pin.value(not self.step_pin.value())
 
     def stop(self):
         '''
@@ -210,7 +210,7 @@ if __name__ == '__main__':
 
     try:
 
-        steps = 200000
+        steps = 2000
 
         stepper1 = Stepper(name='A',
                            dir_pin=6,
@@ -218,7 +218,7 @@ if __name__ == '__main__':
                            enable_pin=8,
                            )
 
-        stepper1.set_max_speed(300)
+        stepper1.set_max_speed(500)
         stepper1.enable()
         led.on()
 

@@ -192,19 +192,18 @@ class Stepper:
         Returns: None
         '''
         steps_to_do = abs(steps)
-        step_interval = self.__max_speed_interval
 
         # Performing a step of N of total steps every time the current time
         # is increased by one step interval
         lastread = utime.ticks_us()
 
         while steps_to_do > 0:
+            cur_time = utime.ticks_us()
             if condition_func and condition_func(condition_params):
                 self.stop()
                 break
 
-            cur_time = utime.ticks_us()
-            if cur_time - lastread >= step_interval:
+            if cur_time - lastread >= self.__max_speed_interval:
                 lastread = cur_time
                 self.one_step()
                 steps_to_do -= 1
@@ -221,7 +220,7 @@ if __name__ == '__main__':
 
     try:
 
-        steps = 2000
+        steps = 200000
 
         stepper1 = Stepper(name='A',
                            dir_pin=6,
@@ -229,7 +228,7 @@ if __name__ == '__main__':
                            enable_pin=8,
                            )
 
-        stepper1.set_max_speed(800)
+        stepper1.set_max_speed(1000)
         stepper1.enable()
         led.on()
 
@@ -242,10 +241,5 @@ if __name__ == '__main__':
         print('Done!')
 
     except KeyboardInterrupt:
-        stepper1.disable()
-        led.off()
-
-    except Exception as err:
-        print(err)
         stepper1.disable()
         led.off()

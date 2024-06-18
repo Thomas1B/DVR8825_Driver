@@ -3,9 +3,7 @@
 This is a micropython module for the designed to be used with the **DVR8825 stepper driver**.
 However, I assume it could be used with similar drivers.
 
-This module is based off of https://github.com/pedromneto97/AccelStepper-MicroPython/blob/master/AccelStepper.py and https://github.com/NikodemBartnik/Pico-Plotter/tree/main/Pico%20script.
-
-  
+Note: Arduinos are better for motor controls due to real-time performance
 
 ## Module Functions
 

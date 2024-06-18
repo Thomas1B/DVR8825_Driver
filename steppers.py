@@ -1,5 +1,5 @@
 
-from machine import Pin
+from machine import Pin  # type: ignore
 import utime
 
 

@@ -2,14 +2,14 @@
 from machine import Pin  # type: ignore
 import utime
 
+# Global constants for ease
+CCW = 0  # Counter-Clockwise direction
+CW = 1  # Clockwise direction.
+HIGH = 1  # high value for Pins.
+LOW = 0  # low value for Pins.
+
 
 class Stepper:
-
-    # Class Constants
-    CCW = 0  # Counter-Clockwise direction.
-    CW = 1  # Clockwise direction.
-    HIGH = 1  # high value for Pins.
-    LOW = 0  # low value for Pins.
 
     def __init__(self, step_pin: int, dir_pin: int, enable_pin: int, step_mode=1, **kwargs) -> None:
         """
@@ -88,7 +88,7 @@ class Stepper:
         '''
         self.enabled = True
         if self.enable_pin:
-            self.enable_pin.value(Stepper.LOW)
+            self.enable_pin.value(LOW)
 
     def disable(self) -> None:
         '''
@@ -97,7 +97,7 @@ class Stepper:
 
         self.enabled = False
         if self.enable_pin:
-            self.enable_pin.value(Stepper.HIGH)
+            self.enable_pin.value(HIGH)
 
     def set_speed(self, speed: float) -> None:
         '''
@@ -115,15 +115,14 @@ class Stepper:
         '''
         self.delay = 1 / abs(speed)  # delay in seconds
 
-    def set_direction(self, direction: 1 | 0) -> None:
+    def set_direction(self, direction: 0 | 1) -> None:
         '''
         Set the direction of the stepper motor.
 
         Parameters:
             direction (1 | 0): The desired direction of the motor rotation.
-                            0 indicates counterclockwise (ccw) rotation.
-                            1 indicates clockwise (cw) rotation.
-                            Use Stepper.CCW or Stepper.CW for ease.
+                            0 or CCW indicates counterclockwise (ccw) rotation.
+                            1 or CW indicates clockwise (cw) rotation.
 
         Returns:
             None
@@ -140,6 +139,7 @@ class Stepper:
         Returns:
             None
         '''
+
         direction = 1 if target_pos > self.position else 0
         self.set_direction(direction)
 
@@ -151,30 +151,34 @@ class Stepper:
             self.position += step_increment / self.step_mode  # compensate for microstepping
 
 
+# **************************** Examples ****************************
+
+def single_motor_example(stepper, steps=200):
+    print('Starting Single motor Example')
+
+    stepper.set_step_mode(2)
+    stepper.set_speed(300)
+    stepper.enable()
+
+    stepper.move_to_abs(steps)
+    utime.sleep(0.5)
+
+    stepper.set_speed(500)
+    stepper.move_to_abs(0)
+
+    stepper.disable()
+    print('Example Done!')
+
+
 if __name__ == '__main__':
-    print("Starting")
-
-    steps = 200
-
     # Define the pins
     stepper = Stepper(step_pin=7, dir_pin=6, enable_pin=8,
                       mode_pins=(0, None, None))
-    stepper.set_speed(300)
-    stepper.set_step_mode(2)
 
     limit_swt = Pin(14, Pin.IN)
 
     try:
-        stepper.enable()
-
-        stepper.move_to_abs(-steps)
-        utime.sleep(0.5)
-
-        stepper.set_speed(500)
-        stepper.move_to_abs(0)
-
-        stepper.disable()
-        print('Done!')
+        single_motor_example(stepper, steps=200)
 
     except KeyboardInterrupt:
         stepper.disable()

@@ -159,17 +159,18 @@ if __name__ == '__main__':
     # Define the pins
     stepper = Stepper(step_pin=7, dir_pin=6, enable_pin=8,
                       mode_pins=(0, None, None))
+    stepper.set_speed(300)
+    stepper.set_step_mode(2)
 
     limit_swt = Pin(14, Pin.IN)
 
     try:
-        stepper.set_speed(300)
         stepper.enable()
 
         stepper.move_to_abs(-steps)
         utime.sleep(0.5)
 
-        stepper.set_step_mode(2)
+        stepper.set_speed(500)
         stepper.move_to_abs(0)
 
         stepper.disable()

@@ -143,15 +143,17 @@ class Stepper:
             None
         '''
 
-        direction = 1 if target_pos > self.position else 0
+        direction = CW if target_pos > self.position else CCW
         self.set_direction(direction)
 
-        step_increment = 1 if direction == 1 else -1
+        step_increment = 1 if direction == CW else -1
+
         while self.position != target_pos:
             self.step_pin.value(1)
             utime.sleep(self.delay)
             self.step_pin.value(0)
             self.position += step_increment / self.step_mode  # compensate for microstepping
+            print(self.position)
 
 
 # **************************** Examples ****************************

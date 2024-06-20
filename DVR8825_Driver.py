@@ -153,7 +153,6 @@ class Stepper:
             utime.sleep(self.delay)
             self.step_pin.value(0)
             self.position += step_increment / self.step_mode  # compensate for microstepping
-            print(self.position)
 
 
 # **************************** Examples ****************************

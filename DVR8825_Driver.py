@@ -41,6 +41,10 @@ class Stepper:
         self.dir_pin = Pin(dir_pin, Pin.OUT)
         self.enable_pin = Pin(enable_pin, Pin.OUT)
 
+        # Class constants
+        self.CCW = CCW  # Counter-Clockwise direction
+        self.CW = CW  # Clockwise direction.
+
         if 'mode_pins' in kwargs:
             # Checking if 'mode_pins' is in **kwargs, if so initialize pins
             m0, m1, m2 = kwargs['mode_pins']
@@ -118,6 +122,18 @@ class Stepper:
         '''
         self.delay = 1 / abs(speed)  # delay in seconds
 
+    def flip_CCW_CW(self) -> None:
+        '''
+        Function to flip the values of counter-clockwise and clockwise.
+            - Useful for running two motors in oppsite direction running same axis.
+
+        CCW -> CW
+        CW -> CCW
+
+        '''
+        self.CCW = not self.CCW
+        self.CW = not self.CW
+
     def set_direction(self, direction: 0 | 1) -> None:
         '''
         Set the direction of the stepper motor.
@@ -143,10 +159,10 @@ class Stepper:
             None
         '''
 
-        direction = CW if target_pos > self.position else CCW
+        direction = self.CW if target_pos > self.position else self.CCW
         self.set_direction(direction)
 
-        step_increment = 1 if direction == CW else -1
+        step_increment = 1 if direction == self.CW else -1
 
         while self.position != target_pos:
             self.step_pin.value(1)
@@ -157,32 +173,23 @@ class Stepper:
 
 # **************************** Examples ****************************
 
-def single_motor_example(stepper, steps=200):
-    print('Starting Single motor Example')
-
-    stepper.set_step_mode(2)
-    stepper.set_speed(300)
-    stepper.enable()
-
-    stepper.move_to_abs(steps)
-    utime.sleep(0.5)
-
-    stepper.set_speed(500)
-    stepper.move_to_abs(0)
-
-    stepper.disable()
-    print('Example Done!')
-
 
 if __name__ == '__main__':
     # Define the pins
     stepper = Stepper(step_pin=7, dir_pin=6, enable_pin=8,
                       mode_pins=(0, None, None))
+    stepper.set_step_mode(2)
+    stepper.set_speed(300)
+    stepper.enable()
+
+    steps = 200
 
     limit_swt = Pin(14, Pin.IN)
 
     try:
-        single_motor_example(stepper, steps=200)
+        stepper.move_to_abs(200)
+
+        stepper.disable()
 
     except KeyboardInterrupt:
         stepper.disable()

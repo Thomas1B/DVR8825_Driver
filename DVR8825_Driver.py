@@ -3,7 +3,7 @@ Basic Stepper Class for Pi Pico using the DVR8825 Motor Driver.
 '''
 
 from machine import Pin  # type: ignore
-import utime
+import utime  # type: ignore
 
 
 # Default direction values

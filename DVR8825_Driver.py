@@ -5,7 +5,6 @@ Basic Stepper Class for Pi Pico using the DVR8825 Motor Driver.
 from machine import Pin  # type: ignore
 import utime  # type: ignore
 
-
 # Default direction values
 CCW = 0  # Counter-Clockwise direction
 CW = 1  # Clockwise direction.
@@ -59,6 +58,7 @@ class Stepper:
         else:
             self.step_mode = step_mode
 
+        self.target_position = 0
         self.position = 0  # position in steps
 
     def set_step_mode(self, step_mode=1) -> None:
@@ -126,7 +126,7 @@ class Stepper:
         '''
         self.delay = 1 / abs(speed)  # delay in seconds
 
-    def flip_CCW_CW(self) -> None:
+    def flip_ccw_cw(self) -> None:
         '''
         Function to flip the values of counter-clockwise and clockwise.
             - Useful for running two motors in oppsite direction running same axis.
@@ -152,6 +152,26 @@ class Stepper:
         '''
         self.dir_pin.value(direction)
 
+    def set_target_pos(self, target_pos: int) -> None:
+        '''
+        Function to set the target position of the motor in absolute positioning.
+
+        Parameters:
+            target_pos: target position in steps.
+
+        Returns:
+            None
+        '''
+        self.target_position = target_pos
+
+    def steps_to_target(self) -> float:
+        '''
+        Function to get the number of steps to the target position
+        '''
+
+        distance = self.target_position - self.position
+        return distance
+
     def move_to_abs(self, target_pos: int) -> None:
         '''
         Move the stepper motor to the target position in absolute steps.
@@ -162,13 +182,13 @@ class Stepper:
         Returns:
             None
         '''
+        self.set_target_pos(target_pos)
 
         direction = self.CW if target_pos > self.position else self.CCW
         self.set_direction(direction)
 
         step_increment = 1 if direction == self.CW else -1
-
-        while self.position != target_pos:
+        while self.steps_to_target() != 0:
             self.step_pin.value(1)
             utime.sleep(self.delay)
             self.step_pin.value(0)
@@ -176,14 +196,12 @@ class Stepper:
 
 
 # **************************** Examples ****************************
-
-
 if __name__ == '__main__':
     # Define the pins
-    stepper = Stepper(step_pin=7, dir_pin=6, enable_pin=8,
-                      mode_pins=(0, None, None))
+    stepper = Stepper(step_pin=1, dir_pin=0, enable_pin=2,
+                      mode_pins=(5, None, None))
     stepper.set_step_mode(2)
-    stepper.set_speed(300)
+    stepper.set_speed(400)
     stepper.enable()
 
     steps = 200
@@ -191,7 +209,9 @@ if __name__ == '__main__':
     limit_swt = Pin(14, Pin.IN)
 
     try:
+        print(f'Before: {stepper.position}')
         stepper.move_to_abs(200)
+        print(f'after: {stepper.position}')
 
         stepper.disable()
 

@@ -5,9 +5,9 @@ Basic Stepper Class for Pi Pico using the DVR8825 Motor Driver.
 from machine import Pin  # type: ignore
 import utime  # type: ignore
 
-# Default direction values
-CCW = 0  # Counter-Clockwise direction
-CW = 1  # Clockwise direction.
+# Default direction values for the DVR8825
+dvr_CCW = 0  # Counter-Clockwise direction
+dvr_CW = 1  # Clockwise direction.
 
 
 # Global constants for ease
@@ -45,8 +45,8 @@ class Stepper:
         self.enable_pin = Pin(enable_pin, Pin.OUT)
 
         # Class constants
-        self.CCW = CCW  # Counter-Clockwise direction
-        self.CW = CW  # Clockwise direction.
+        self.CCW = dvr_CW  # Counter-Clockwise direction
+        self.CW = dvr_CCW  # Clockwise direction.
 
         if 'mode_pins' in kwargs:
             # Checking if 'mode_pins' is in **kwargs, if so initialize pins
@@ -58,8 +58,9 @@ class Stepper:
         else:
             self.step_mode = step_mode
 
-        self.target_position = 0
+        self.target_position = 0  # target position in steps
         self.position = 0  # position in steps
+        self.direction = self.CCW
 
     def set_step_mode(self, step_mode=1) -> None:
         '''
@@ -118,7 +119,7 @@ class Stepper:
         Only the absolute value of the speed is used to calculate the delay between steps.
 
         Parameters:
-            speed (float): The desired speed of the motor in steps per second. 
+            speed (float): The desired speed of the motor in steps per second.
                     The speed cannot be zero as it would lead to an infinite delay.
 
         Returns:
@@ -126,7 +127,7 @@ class Stepper:
         '''
         self.delay = 1 / abs(speed)  # delay in seconds
 
-    def flip_ccw_cw(self) -> None:
+    def _flip_ccw_cw(self) -> None:
         '''
         Function to flip the values of counter-clockwise and clockwise.
             - Useful for running two motors in oppsite direction running same axis.
@@ -144,13 +145,12 @@ class Stepper:
 
         Parameters:
             direction (1 | 0): The desired direction of the motor rotation.
-                            0 or CCW indicates counterclockwise (ccw) rotation.
-                            1 or CW indicates clockwise (cw) rotation.
 
         Returns:
             None
         '''
         self.dir_pin.value(direction)
+        self.direction = direction
 
     def set_target_pos(self, target_pos: int) -> None:
         '''
@@ -172,6 +172,14 @@ class Stepper:
         distance = self.target_position - self.position
         return distance
 
+    def one_step(self) -> None:
+        '''
+        Function to take one step.
+        '''
+        self.step_pin.value(1)
+        utime.sleep(self.delay)
+        self.step_pin.value(0)
+
     def move_to_abs(self, target_pos: int) -> None:
         '''
         Move the stepper motor to the target position in absolute steps.
@@ -183,15 +191,11 @@ class Stepper:
             None
         '''
         self.set_target_pos(target_pos)
+        self.set_direction(self.CW if target_pos > self.position else self.CCW)
 
-        direction = self.CW if target_pos > self.position else self.CCW
-        self.set_direction(direction)
-
-        step_increment = 1 if direction == self.CW else -1
+        step_increment = 1 if self.direction == self.CW else -1
         while self.steps_to_target() != 0:
-            self.step_pin.value(1)
-            utime.sleep(self.delay)
-            self.step_pin.value(0)
+            self.one_step()
             self.position += step_increment / self.step_mode  # compensate for microstepping
 
 
@@ -199,9 +203,9 @@ class Stepper:
 if __name__ == '__main__':
     # Define the pins
     stepper = Stepper(step_pin=1, dir_pin=0, enable_pin=2,
-                      mode_pins=(5, None, None))
+                      mode_pins=(3, 4, 5))
     stepper.set_step_mode(2)
-    stepper.set_speed(400)
+    stepper.set_speed(500)
     stepper.enable()
 
     steps = 200
@@ -210,7 +214,7 @@ if __name__ == '__main__':
 
     try:
         print(f'Before: {stepper.position}')
-        stepper.move_to_abs(200)
+        stepper.move_to_abs(2000)
         print(f'after: {stepper.position}')
 
         stepper.disable()

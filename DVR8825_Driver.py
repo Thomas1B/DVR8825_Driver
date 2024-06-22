@@ -5,9 +5,13 @@ Basic Stepper Class for Pi Pico using the DVR8825 Motor Driver.
 from machine import Pin  # type: ignore
 import utime
 
-# Global constants for ease
+
+# Default direction values
 CCW = 0  # Counter-Clockwise direction
 CW = 1  # Clockwise direction.
+
+
+# Global constants for ease
 HIGH = 1  # high value for Pins.
 LOW = 0  # low value for Pins.
 

@@ -60,7 +60,7 @@ class Stepper:
 
         self.target_position = 0  # target position in steps
         self.position = 0  # position in steps
-        self.direction = self.CCW
+        self.set_direction(self.CCW)
 
     def set_step_mode(self, step_mode=1) -> None:
         '''
